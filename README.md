@@ -27,6 +27,22 @@ This project provides a clean, modernized implementation while maintaining compa
 
 ---
 
+## Example Images Using GroundedDINO-VL
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/f83fc105-00ff-4eca-a3bf-6711a5b47fdb" width="400"></td>
+    <td><img src="https://github.com/user-attachments/assets/5ce29e8c-f3a3-4511-ad9a-ce022a1eadf9" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/5314ad18-b34c-472a-aaa8-2f3a42465da3" width="400"></td>
+    <td><img src="https://github.com/user-attachments/assets/a91752f2-b659-486e-b141-e13d6b80937f" width="400"></td>
+  </tr>
+</table>
+
+
+
+---
+
 ## Installation
 
 ### Requirements
@@ -77,48 +93,71 @@ For detailed build instructions, including troubleshooting and custom compiler f
 
 ## Quick Start
 
-### Basic Object Detection
+### High-Level API 
 
-```python
-from groundeddino_vl.utils import inference
+The new API returns Supervision Detections objects and abstracts preprocessing, postprocessing,
+and caption handling.
 
-# Load model with checkpoint
-model = inference.load_model(
+#### Caption-Based Detection
+```
+import cv2
+from groundeddino_vl.utils.inference import Model
+
+image = cv2.imread("path/to/image.jpg")
+
+model = Model(
     model_config_path="path/to/config.py",
     model_checkpoint_path="path/to/weights.pth"
 )
 
-# Load image
-image, transformed = inference.load_image("path/to/image.jpg")
-
-# Detect objects with text prompts
-boxes, labels = inference.predict(
-    model=model,
-    image=transformed,
-    caption="a cat . a dog .",
-    box_threshold=0.3,
-    text_threshold=0.25
+detections, labels = model.predict_with_caption(
+    image=image,
+    caption="a dog, a cat",
+    box_threshold=0.35,
+    text_threshold=0.25,
 )
 
-print(f"Found {len(boxes)} objects: {labels}")
+print(detections)
+print(labels)
+
+```
+### Class-Based Detection
+```
+classes = ["cat", "dog"]
+
+detections = model.predict_with_classes(
+    image=image,
+    classes=classes,
+    box_threshold=0.35,
+    text_threshold=0.25,
+)
+
+print("Detections:", detections)
+print("Class IDs:", detections.class_id)
+
 ```
 
-### Using Supervision for Visualization
-
-```python
+### Visualize with Supervision
+```
 import supervision as sv
 
-# Get predictions
-detections = sv.Detections(xyxy=boxes, class_id=class_ids)
-
-# Visualize with bounding boxes
 box_annotator = sv.BoxAnnotator()
-annotated_image = box_annotator.annotate(scene=image, detections=detections)
+label_annotator = sv.LabelAnnotator()
 
-# Save result
-sv.image_writer.write(image_name="result.jpg", image=annotated_image)
+labels = [f"{phrase} {conf:.2f}" for phrase, conf in zip(labels, detections.confidence)]
+
+annotated_image = box_annotator.annotate(scene=image, detections=detections)
+annotated_image = label_annotator.annotate(
+    scene=annotated_image,
+    detections=detections,
+    labels=labels
+)
+
+sv.plot_image(annotated_image)
+
 ```
 
+---
 ### Backward Compatibility
 
 Existing GroundingDINO code continues to work (with deprecation warnings):
