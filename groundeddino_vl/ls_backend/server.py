@@ -157,7 +157,9 @@ def create_app() -> Any:
         checkpoint_path = os.environ.get("GDVL_CHECKPOINT")
 
         if config_path and checkpoint_path:
-            print(f"[ls_backend] Loading model at startup: config={config_path}, checkpoint={checkpoint_path}")
+            print(
+                f"[ls_backend] Loading model at startup: config={config_path}, checkpoint={checkpoint_path}"
+            )
             model_loader.load_model(
                 model_config_path=config_path,
                 model_checkpoint_path=checkpoint_path,

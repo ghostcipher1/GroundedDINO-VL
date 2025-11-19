@@ -98,14 +98,17 @@ def _download_file(url: str, output_path: Path, timeout: int = 300) -> None:
         with urlopen(req, timeout=timeout) as response:
             total_size = int(response.headers.get("Content-Length", 0))
 
-            with open(output_path, "wb") as f, tqdm(
-                total=total_size,
-                unit="B",
-                unit_scale=True,
-                unit_divisor=1024,
-                desc=output_path.name,
-                bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
-            ) as pbar:
+            with (
+                open(output_path, "wb") as f,
+                tqdm(
+                    total=total_size,
+                    unit="B",
+                    unit_scale=True,
+                    unit_divisor=1024,
+                    desc=output_path.name,
+                    bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]",
+                ) as pbar,
+            ):
                 while True:
                     chunk = response.read(8192)
                     if not chunk:
@@ -155,7 +158,11 @@ def _download_file_simple(url: str, output_path: Path, timeout: int = 300) -> No
                         percent = (downloaded / total_size) * 100
                         mb_down = downloaded / (1024 * 1024)
                         mb_total = total_size / (1024 * 1024)
-                        print(f"\r[weights_manager] Downloaded: {mb_down:.1f}MB / {mb_total:.1f}MB ({percent:.1f}%)", end="", flush=True)
+                        print(
+                            f"\r[weights_manager] Downloaded: {mb_down:.1f}MB / {mb_total:.1f}MB ({percent:.1f}%)",
+                            end="",
+                            flush=True,
+                        )
 
             print()  # Newline after progress
             print(f"[weights_manager] Download complete: {output_path.name}")
@@ -270,9 +277,7 @@ def ensure_weights(
     if not resolved_checkpoint or not os.path.isfile(resolved_checkpoint):
         print(f"[weights_manager] Checkpoint not found: {resolved_checkpoint}")
         try:
-            resolved_checkpoint = str(
-                _ensure_huggingface_file(DEFAULT_CHECKPOINT_FILE, cache_dir)
-            )
+            resolved_checkpoint = str(_ensure_huggingface_file(DEFAULT_CHECKPOINT_FILE, cache_dir))
         except Exception as e:
             raise FileNotFoundError(
                 f"Failed to auto-download checkpoint. "
@@ -293,9 +298,7 @@ def ensure_weights(
             else:
                 # Try to download config (if available on HF)
                 try:
-                    resolved_config = str(
-                        _ensure_huggingface_file(DEFAULT_CONFIG_FILE, cache_dir)
-                    )
+                    resolved_config = str(_ensure_huggingface_file(DEFAULT_CONFIG_FILE, cache_dir))
                 except Exception:
                     # Config is optional if found in package
                     print(
@@ -310,9 +313,7 @@ def ensure_weights(
                             f"Checked: {package_config}"
                         )
         except Exception as e:
-            raise FileNotFoundError(
-                f"Failed to locate config file. Error: {e}"
-            ) from e
+            raise FileNotFoundError(f"Failed to locate config file. Error: {e}") from e
 
     return resolved_config, resolved_checkpoint
 
