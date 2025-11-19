@@ -566,7 +566,11 @@ class TransformerEncoder(nn.Module):
             if self.text_layers and memory_text is not None:
                 memory_text = self.text_layers[layer_id](
                     src=memory_text.transpose(0, 1),
-                    src_mask=(~text_self_attention_masks if text_self_attention_masks is not None else None),  # note we use ~ for mask here
+                    src_mask=(
+                        ~text_self_attention_masks
+                        if text_self_attention_masks is not None
+                        else None
+                    ),  # note we use ~ for mask here
                     src_key_padding_mask=text_attention_mask,
                     pos=(pos_text.transpose(0, 1) if pos_text is not None else None),
                 ).transpose(0, 1)

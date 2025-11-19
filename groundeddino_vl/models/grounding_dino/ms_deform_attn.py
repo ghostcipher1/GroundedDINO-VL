@@ -385,9 +385,12 @@ class MultiScaleDeformableAttention(nn.Module):
             if halffloat:
                 output = output.half()
         else:
-            output = cast(Tensor, multi_scale_deformable_attn_pytorch(
-                value, spatial_shapes, sampling_locations, attention_weights
-            ))
+            output = cast(
+                Tensor,
+                multi_scale_deformable_attn_pytorch(
+                    value, spatial_shapes, sampling_locations, attention_weights
+                ),
+            )
 
         output = self.output_proj(output)
 

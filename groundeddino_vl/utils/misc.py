@@ -516,7 +516,9 @@ def _onnx_nested_tensor_from_tensor_list(tensor_list: List[Tensor]) -> NestedTen
     padded_masks = []
     for img in tensor_list:
         padding = [int(s1 - s2) for s1, s2 in zip(max_size_tuple, tuple(img.shape))]
-        padded_img = torch.nn.functional.pad(img, tuple([0, padding[2], 0, padding[1], 0, padding[0]]))
+        padded_img = torch.nn.functional.pad(
+            img, tuple([0, padding[2], 0, padding[1], 0, padding[0]])
+        )
         padded_imgs.append(padded_img)
 
         m = torch.zeros_like(img[0], dtype=torch.int, device=img.device)
@@ -666,7 +668,13 @@ def accuracy_onehot(pred, gt):
     return acc
 
 
-def interpolate(input: Tensor, size: Optional[List[int]] = None, scale_factor: Optional[float] = None, mode: str = "nearest", align_corners: Optional[bool] = None) -> Tensor:
+def interpolate(
+    input: Tensor,
+    size: Optional[List[int]] = None,
+    scale_factor: Optional[float] = None,
+    mode: str = "nearest",
+    align_corners: Optional[bool] = None,
+) -> Tensor:
     r"""
     Equivalent to nn.functional.interpolate, but with support for empty batch sizes.
     This will eventually be supported natively by PyTorch, and this
@@ -674,13 +682,18 @@ def interpolate(input: Tensor, size: Optional[List[int]] = None, scale_factor: O
     r"""
     if __torchvision_need_compat_flag < 0.7:
         if input.numel() > 0:
-            return cast(Tensor, torch.nn.functional.interpolate(input, size, scale_factor, mode, align_corners))
+            return cast(
+                Tensor,
+                torch.nn.functional.interpolate(input, size, scale_factor, mode, align_corners),
+            )
 
         output_shape = _output_size(2, input, size, scale_factor)
         output_shape = list(input.shape[:-2]) + list(output_shape)
         return cast(Tensor, _new_empty_tensor(input, output_shape))
     else:
-        return cast(Tensor, torchvision.ops.misc.interpolate(input, size, scale_factor, mode, align_corners))
+        return cast(
+            Tensor, torchvision.ops.misc.interpolate(input, size, scale_factor, mode, align_corners)
+        )
 
 
 class color_sys:
