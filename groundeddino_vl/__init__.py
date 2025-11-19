@@ -40,7 +40,8 @@ Public API:
         - ops: CUDA operations (if available, for advanced users)
 """
 
-__version__ = "v2.0.0"
+from groundeddino_vl.version import __version__
+
 __author__ = "ghostcipher1"
 
 # Import and re-export the public API.

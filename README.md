@@ -125,68 +125,136 @@ To keep this README focused, full documentation has been moved into dedicated fi
 
 ## Quick Start
 
-### High-Level API 
+### Modern High-Level API (Recommended)
 
-The new API returns Supervision Detections objects and abstracts preprocessing, postprocessing,
-and caption handling.
+The recommended way to use GroundedDINO-VL is through the clean public API that abstracts away preprocessing, postprocessing, and model management:
 
-#### Caption-Based Detection
+#### Basic Detection with Text Prompts
+```python
+from groundeddino_vl import load_model, predict
+
+# Load model once
+model = load_model(
+    config_path="path/to/config.py",
+    checkpoint_path="path/to/weights.pth",
+    device="cuda"
+)
+
+# Run detection with text prompt
+result = predict(
+    model=model,
+    image="path/to/image.jpg",
+    text_prompt="car . person . dog",  # Objects separated by " . "
+    box_threshold=0.35,
+    text_threshold=0.25,
+)
+
+# Access results
+print(f"Found {len(result)} objects")
+for label, score in zip(result.labels, result.scores):
+    print(f"{label}: {score:.2f}")
+
+# Convert boxes to pixel coordinates (xyxy format)
+boxes_xyxy = result.to_xyxy(denormalize=True)
+print(f"Boxes: {boxes_xyxy}")
 ```
+
+#### Detection from Image Arrays
+```python
+import cv2
+from groundeddino_vl import load_model, predict
+
+# Load image with OpenCV (BGR format)
+image_bgr = cv2.imread("photo.jpg")
+
+# Convert BGR to RGB for the API
+image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+
+model = load_model("config.py", "weights.pth")
+result = predict(model, image_rgb, "cat . dog . bird")
+
+print(f"Detections: {result}")
+```
+
+#### Annotate and Visualize Results
+```python
+from groundeddino_vl import load_model, predict, annotate, load_image
+import cv2
+
+model = load_model("config.py", "weights.pth")
+
+# load_image returns (original_array, preprocessed_tensor)
+image_np, _ = load_image("photo.jpg")
+
+result = predict(model, image_np, "car . truck . bus")
+
+# Annotate image (returns BGR format for OpenCV)
+annotated = annotate(image_np, result, show_labels=True, show_confidence=True)
+
+# Save or display result
+cv2.imwrite("output.jpg", annotated)
+cv2.imshow("Result", annotated)
+cv2.waitKey(0)
+```
+
+### Advanced API: Low-Level Control with Supervision
+
+For advanced users who need fine-grained control or want to use Supervision detections directly:
+
+```python
 import cv2
 from groundeddino_vl.utils.inference import Model
-
-image = cv2.imread("path/to/image.jpg")
-
-model = Model(
-    model_config_path="path/to/config.py",
-    model_checkpoint_path="path/to/weights.pth"
-)
-
-detections, labels = model.predict_with_caption(
-    image=image,
-    caption="a dog, a cat",
-    box_threshold=0.35,
-    text_threshold=0.25,
-)
-
-print(detections)
-print(labels)
-
-```
-### Class-Based Detection
-```
-classes = ["cat", "dog"]
-
-detections = model.predict_with_classes(
-    image=image,
-    classes=classes,
-    box_threshold=0.35,
-    text_threshold=0.25,
-)
-
-print("Detections:", detections)
-print("Class IDs:", detections.class_id)
-
-```
-
-### Visualize with Supervision
-```
 import supervision as sv
 
-box_annotator = sv.BoxAnnotator()
-label_annotator = sv.LabelAnnotator()
+# Load image with OpenCV (BGR format)
+image_bgr = cv2.imread("photo.jpg")
 
-labels = [f"{phrase} {conf:.2f}" for phrase, conf in zip(labels, detections.confidence)]
-
-annotated_image = box_annotator.annotate(scene=image, detections=detections)
-annotated_image = label_annotator.annotate(
-    scene=annotated_image,
-    detections=detections,
-    labels=labels
+# Use the Model class for lower-level access
+model = Model(
+    model_config_path="config.py",
+    model_checkpoint_path="weights.pth"
 )
 
-sv.plot_image(annotated_image)
+# Predict with caption (returns sv.Detections + labels)
+detections, labels = model.predict_with_caption(
+    image=image_bgr,
+    caption="person . car . bicycle",  # Objects separated by " . "
+    box_threshold=0.35,
+    text_threshold=0.25,
+)
 
+# Visualize with Supervision
+box_annotator = sv.BoxAnnotator()
+annotated = box_annotator.annotate(scene=image_bgr, detections=detections)
+
+# Add labels with confidence scores
+label_annotator = sv.LabelAnnotator()
+labels_with_conf = [
+    f"{label} {conf:.2f}"
+    for label, conf in zip(labels, detections.confidence)
+]
+annotated = label_annotator.annotate(
+    scene=annotated,
+    detections=detections,
+    labels=labels_with_conf
+)
+
+cv2.imshow("Result", annotated)
+cv2.waitKey(0)
+```
+
+#### Class-Based Detection
+```python
+# Detect specific classes instead of generic captions
+detections = model.predict_with_classes(
+    image=image_bgr,
+    classes=["cat", "dog", "bird"],
+    box_threshold=0.35,
+    text_threshold=0.25,
+)
+
+# class_id field is automatically populated
+print(f"Class IDs: {detections.class_id}")
 ```
 
 ---
@@ -219,28 +287,6 @@ groundeddino_vl/
 ├── data/             # Data loading and transforms
 ├── api/              # High-level API (future)
 └── exporters/        # Model export (ONNX, TensorRT - future)
-```
-
----
-
-## Docker Usage
-
-### Pull from GitHub Container Registry
-
-```bash
-docker pull ghcr.io/ghostcipher1/groundeddino_vl:latest
-```
-
-### Run with GPU Support
-
-```bash
-docker run --gpus all -it ghcr.io/ghostcipher1/groundeddino_vl:latest python
-```
-
-### Build Locally
-
-```bash
-docker build -t groundeddino_vl:local .
 ```
 
 ---

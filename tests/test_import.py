@@ -19,8 +19,8 @@ def test_import_groundingdino():
 
 def test_groundingdino_version():
     """Test that groundingdino has the correct version."""
-    import groundingdino.version as version_module
     import groundeddino_vl
+    import groundingdino.version as version_module
 
     # Ensure version attribute exists and matches the canonical package version
     assert hasattr(version_module, "__version__")

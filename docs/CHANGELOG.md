@@ -10,7 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - CI workflow flag to optionally test CUDA wheel installation in an isolated virtual environment (workflow_dispatch: gpu=true). The job installs torch/torchvision CUDA 12.8 wheels, prints build/runtime info, installs the package in editable mode, and runs tests.
 
 ### Changed
-- Project version bumped to v2.0.0 across sources, packaging metadata, scripts, and Docker labels.
+- Project version bumped to v2.0.0 across sources and packaging metadata.
 - README versioning section updated to explicitly use semantic versioning and v2.0.0 example.
 - Tests modernized to be resilient in CPU-only environments, skipping CUDA extension checks when unavailable.
 - Cleaned and standardized CI: non-isolated builds where appropriate, consistent virtualenv usage in jobs.

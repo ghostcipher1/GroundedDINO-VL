@@ -387,18 +387,6 @@ GitHub Actions workflows ([.github/workflows/](.github/workflows/)):
 python verify-build-local.py
 ```
 
-### Docker Test (comprehensive)
-
-```bash
-# Installation test (~5 minutes)
-./test-install.sh  # or test-install.ps1 on Windows
-
-# Full build test (~30 minutes)
-./test-build.sh  # or test-build.ps1 on Windows
-```
-
-See [DOCKER_TESTS.md](DOCKER_TESTS.md) for details.
-
 ## Performance Considerations
 
 ### C++17 Benefits
@@ -444,4 +432,4 @@ export CXX="ccache g++"
 - **Issues:** https://github.com/ghostcipher1/groundingdino-cu128/issues
 - **Discussions:** https://github.com/ghostcipher1/groundingdino-cu128/discussions
 - **Changelog:** [CHANGELOG.md](CHANGELOG.md)
-- **Testing:** [TESTING.md](TESTING.md) and [DOCKER_TESTS.md](DOCKER_TESTS.md)
+- **Testing:** [TESTING.md](TESTING.md)

@@ -8,8 +8,6 @@ numpy
 opencv-python
 supervision==0.4.0
 pycocotools
-pip
-numpy
 
 # Server
 fastapi

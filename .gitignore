@@ -30,6 +30,15 @@ ENV/
 env.bak/
 venv.bak/
 
+# AI Tooling (added so if people use these tools, their configs are ignored)
+.claude/
+.ollama/
+.openai/
+openai/
+anthropic/
+.zencoder/
+.cursor
+
 # PyCharm
 .idea/
 

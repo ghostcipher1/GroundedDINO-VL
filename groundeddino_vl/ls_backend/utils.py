@@ -6,12 +6,11 @@ and other utilities used by the LS backend.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-
 import base64
 import logging
 import os
 from io import BytesIO
+from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.request import Request, urlopen
 
 import numpy as np

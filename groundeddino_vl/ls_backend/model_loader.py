@@ -8,10 +8,10 @@ metadata for health and debug endpoints.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
 import os
-from typing import Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 try:
     # High-level wrapper around GroundedDINO-VL

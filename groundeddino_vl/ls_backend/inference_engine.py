@@ -13,8 +13,8 @@ integration with a Label Studio ML Backend service.
 
 from __future__ import annotations
 
-from io import BytesIO
 import time
+from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np

@@ -22,8 +22,7 @@ from urllib.request import Request, urlopen
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import inference_engine
-from . import model_loader
+from . import inference_engine, model_loader
 from .config import DEFAULT_SETTINGS
 
 

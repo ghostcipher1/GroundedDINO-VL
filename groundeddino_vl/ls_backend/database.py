@@ -22,8 +22,8 @@ This module targets Python 3.12 and SQLAlchemy 2.0 style APIs.
 
 from __future__ import annotations
 
-from datetime import datetime
 import os
+from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional
 
 from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, create_engine

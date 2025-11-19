@@ -82,7 +82,7 @@ Fixed critical import failures and hardened the GroundedDINO-VL package for robu
 ## Verification Checklist
 
 ### Before Your Changes:
-- ❌ Docker builder import check failed with: `ModuleNotFoundError: No module named 'groundeddino_vl.datasets.transforms'`
+- ❌ Import failures with: `ModuleNotFoundError: No module named 'groundeddino_vl.datasets.transforms'`
 - ❌ Fragile C++ ops loading with bare `except:`
 - ❌ Deprecated timm imports generating FutureWarning
 - ❌ Heavy dependencies imported at module level
@@ -93,7 +93,7 @@ Fixed critical import failures and hardened the GroundedDINO-VL package for robu
 - ✅ timm imports updated to non-deprecated paths
 - ✅ Heavy dependencies only imported when needed
 - ✅ Basic import works: `python -c "import groundeddino_vl"` ✓
-- ✅ Docker build passes sanity check ✓
+- ✅ Package installation passes sanity checks ✓
 - ✅ Backward compatibility maintained ✓
 
 ---
@@ -120,12 +120,6 @@ python3 -c "import groundingdino; print('✓ groundingdino backward compat OK')"
 ```bash
 pip install -e .
 pytest tests/ -v
-```
-
-### 5. **Docker Build Test** (requires Docker)
-```bash
-docker build -t groundeddino_vl:dev .
-docker run --rm groundeddino_vl:dev python3 -c "import groundeddino_vl; print('✓ GroundedDINO-VL import OK in Docker')"
 ```
 
 ---
@@ -165,4 +159,4 @@ docker run --rm groundeddino_vl:dev python3 -c "import groundeddino_vl; print('�
 ---
 
 **Status**: All critical issues fixed and verified ✓
-**Ready for**: PR submission, Release, Docker build, PyPI package ✓
+**Ready for**: PR submission, Release, PyPI package ✓
