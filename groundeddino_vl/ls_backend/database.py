@@ -152,8 +152,8 @@ def save_inference(session_info: Dict[str, Any], predictions: Iterable[Dict[str,
     """
     SessionLocal = get_session()
     ts: datetime = session_info.get("timestamp") or datetime.utcnow()
-    model_version: str = session_info.get("model_version")
-    source: str = session_info.get("source")
+    model_version: str = str(session_info.get("model_version", ""))
+    source: str = str(session_info.get("source", ""))
 
     if not model_version or not source:
         raise ValueError("session_info must include 'model_version' and 'source'")

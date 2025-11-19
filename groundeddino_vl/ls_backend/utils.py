@@ -119,12 +119,17 @@ def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
     # Common fields at root
     for key in ("image_bytes", "image", "image_url", "imageUrl", "img", "url"):
         if key in task:
-            return task[key]
+            val = task[key]
+            if isinstance(val, (str, bytes)):
+                return val
 
-    data = task.get("data") if isinstance(task.get("data"), dict) else {}
-    for key in ("image", "image_url", "imageUrl", "img", "url", "image_bytes"):
-        if key in data:
-            return data[key]
+    data = task.get("data")
+    if isinstance(data, dict):
+        for key in ("image", "image_url", "imageUrl", "img", "url", "image_bytes"):
+            if key in data:
+                val = data[key]
+                if isinstance(val, (str, bytes)):
+                    return val
 
     return None
 
@@ -132,7 +137,7 @@ def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
 def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
     req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urlopen(req, timeout=timeout) as resp:
-        return resp.read()
+        return bytes(resp.read())
 
 
 def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
@@ -342,7 +347,7 @@ def convert_to_labelstudio_format(
     results: List[Dict[str, Any]] = []
     for i in range(n):
         x1, y1, x2, y2 = xyxy[i].tolist()
-        value = convert_xyxy_to_lspct([x1, y1, x2, y2], width, height)
+        value: Dict[str, Any] = convert_xyxy_to_lspct([x1, y1, x2, y2], width, height)
 
         lbl = labels[i] if i < len(labels) else "object"
         score = float(scores[i]) if scores is not None and i < len(scores) else None

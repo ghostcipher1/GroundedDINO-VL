@@ -489,11 +489,11 @@ class TransformerEncoder(nn.Module):
         valid_ratios: Tensor,
         key_padding_mask: Tensor,
         # for texts
-        memory_text: Tensor = None,
-        text_attention_mask: Tensor = None,
-        pos_text: Tensor = None,
-        text_self_attention_masks: Tensor = None,
-        position_ids: Tensor = None,
+        memory_text: Optional[Tensor] = None,
+        text_attention_mask: Optional[Tensor] = None,
+        pos_text: Optional[Tensor] = None,
+        text_self_attention_masks: Optional[Tensor] = None,
+        position_ids: Optional[Tensor] = None,
     ):
         """
         Input:
@@ -524,7 +524,7 @@ class TransformerEncoder(nn.Module):
                 spatial_shapes, valid_ratios, device=src.device
             )
 
-        if self.text_layers:
+        if self.text_layers and memory_text is not None:
             # generate pos_text
             bs, n_text, text_dim = memory_text.shape
             if pos_text is None and position_ids is None:
@@ -563,10 +563,10 @@ class TransformerEncoder(nn.Module):
                         attention_mask_l=text_attention_mask,
                     )
 
-            if self.text_layers:
+            if self.text_layers and memory_text is not None:
                 memory_text = self.text_layers[layer_id](
                     src=memory_text.transpose(0, 1),
-                    src_mask=~text_self_attention_masks,  # note we use ~ for mask here
+                    src_mask=(~text_self_attention_masks if text_self_attention_masks is not None else None),  # note we use ~ for mask here
                     src_key_padding_mask=text_attention_mask,
                     pos=(pos_text.transpose(0, 1) if pos_text is not None else None),
                 ).transpose(0, 1)
@@ -657,6 +657,9 @@ class TransformerDecoder(nn.Module):
             - valid_ratios/spatial_shapes: bs, nlevel, 2
         """
         output = tgt
+
+        assert refpoints_unsigmoid is not None, "refpoints_unsigmoid cannot be None"
+        assert valid_ratios is not None, "valid_ratios cannot be None"
 
         intermediate = []
         reference_points = refpoints_unsigmoid.sigmoid()
@@ -900,7 +903,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
             tgt = tgt + self.dropout2(tgt2)
             tgt = self.norm2(tgt)
 
-        if self.use_text_cross_attention:
+        if self.use_text_cross_attention and memory_text is not None:
             tgt2 = self.ca_text(
                 self.with_pos_embed(tgt, tgt_query_pos),
                 memory_text.transpose(0, 1),
@@ -910,6 +913,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
             tgt = tgt + self.catext_dropout(tgt2)
             tgt = self.catext_norm(tgt)
 
+        assert tgt_reference_points is not None, "tgt_reference_points cannot be None"
+        assert memory is not None, "memory cannot be None"
         tgt2 = self.cross_attn(
             query=self.with_pos_embed(tgt, tgt_query_pos).transpose(0, 1),
             reference_points=tgt_reference_points.transpose(0, 1).contiguous(),

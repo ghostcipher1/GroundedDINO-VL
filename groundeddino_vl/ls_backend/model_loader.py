@@ -17,7 +17,7 @@ try:
     # High-level wrapper around GroundedDINO-VL
     from groundeddino_vl.utils.inference import Model as GDVLModel
 except Exception as _import_err:  # pragma: no cover - log and re-raise on actual load
-    GDVLModel = None  # type: ignore[assignment]
+    GDVLModel = None  # type: ignore[assignment,misc]
 
 
 logger = logging.getLogger(__name__)
@@ -151,7 +151,8 @@ def _read_version_from_pyproject() -> Optional[str]:
         if os.path.isfile(candidate):
             with open(candidate, "rb") as f:
                 data = tomllib.load(f)
-            return data.get("project", {}).get("version")
+            version = data.get("project", {}).get("version")
+            return str(version) if version else None
     except Exception:  # pragma: no cover
         return None
     return None

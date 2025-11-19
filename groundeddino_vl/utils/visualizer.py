@@ -8,6 +8,7 @@
 
 import datetime
 import os
+from typing import cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,20 +31,20 @@ def renorm(
             str(img.size()),
         )
         img_perm = img.permute(1, 2, 0)
-        mean = torch.Tensor(mean)
-        std = torch.Tensor(std)
+        mean = cast(torch.FloatTensor, torch.Tensor(mean))
+        std = cast(torch.FloatTensor, torch.Tensor(std))
         img_res = img_perm * std + mean
-        return img_res.permute(2, 0, 1)
+        return cast(torch.FloatTensor, img_res.permute(2, 0, 1))
     else:  # img.dim() == 4
         assert img.size(1) == 3, 'img.size(1) shoule be 3 but "%d". (%s)' % (
             img.size(1),
             str(img.size()),
         )
         img_perm = img.permute(0, 2, 3, 1)
-        mean = torch.Tensor(mean)
-        std = torch.Tensor(std)
+        mean = cast(torch.FloatTensor, torch.Tensor(mean))
+        std = cast(torch.FloatTensor, torch.Tensor(std))
         img_res = img_perm * std + mean
-        return img_res.permute(0, 3, 1, 2)
+        return cast(torch.FloatTensor, img_res.permute(0, 3, 1, 2))
 
 
 class ColorMap:

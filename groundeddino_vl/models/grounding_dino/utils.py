@@ -49,8 +49,8 @@ def get_sine_pos_embed(
     pos_res = [sine_func(x) for x in pos_tensor.split([1] * pos_tensor.shape[-1], dim=-1)]
     if exchange_xy:
         pos_res[0], pos_res[1] = pos_res[1], pos_res[0]
-    pos_res = torch.cat(pos_res, dim=-1)
-    return pos_res
+    pos_res_tensor = torch.cat(pos_res, dim=-1)
+    return pos_res_tensor
 
 
 def gen_encoder_output_proposals(

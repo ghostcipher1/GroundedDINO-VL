@@ -14,7 +14,7 @@ import pickle
 import subprocess
 import time
 from collections import OrderedDict, defaultdict, deque
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import numpy as np
 import torch
@@ -403,9 +403,9 @@ class NestedTensor(object):
         if mask == "auto":
             self.mask = torch.zeros_like(tensors).to(tensors.device)
             if self.mask.dim() == 3:
-                self.mask = self.mask.sum(0).to(bool)
+                self.mask = self.mask.sum(0).to(torch.bool)
             elif self.mask.dim() == 4:
-                self.mask = self.mask.sum(1).to(bool)
+                self.mask = self.mask.sum(1).to(torch.bool)
             else:
                 raise ValueError(
                     "tensors dim must be 3 or 4 but {}({})".format(
@@ -422,8 +422,8 @@ class NestedTensor(object):
             res.append(torch.Tensor([maxH, maxW]))
         return res
 
-    def to(self, device):
-        # type: (Device) -> NestedTensor # noqa
+    def to(self, device: torch.device):
+        # type: (...) -> NestedTensor # noqa
         cast_tensor = self.tensors.to(device)
         mask = self.mask
         if mask is not None:
@@ -500,13 +500,13 @@ def nested_tensor_from_tensor_list(tensor_list: List[Tensor]):
 # nested_tensor_from_tensor_list() that is supported by ONNX tracing.
 @torch.jit.unused
 def _onnx_nested_tensor_from_tensor_list(tensor_list: List[Tensor]) -> NestedTensor:
-    max_size = []
+    max_size: List[int] = []
     for i in range(tensor_list[0].dim()):
         max_size_i = torch.max(
-            torch.stack([img.shape[i] for img in tensor_list]).to(torch.float32)
+            torch.stack([torch.tensor(img.shape[i]) for img in tensor_list]).to(torch.float32)
         ).to(torch.int64)
-        max_size.append(max_size_i)
-    max_size = tuple(max_size)
+        max_size.append(int(max_size_i.item()))
+    max_size_tuple = tuple(max_size)
 
     # work around for
     # pad_img[: img.shape[0], : img.shape[1], : img.shape[2]].copy_(img)
@@ -515,8 +515,8 @@ def _onnx_nested_tensor_from_tensor_list(tensor_list: List[Tensor]) -> NestedTen
     padded_imgs = []
     padded_masks = []
     for img in tensor_list:
-        padding = [(s1 - s2) for s1, s2 in zip(max_size, tuple(img.shape))]
-        padded_img = torch.nn.functional.pad(img, (0, padding[2], 0, padding[1], 0, padding[0]))
+        padding = [int(s1 - s2) for s1, s2 in zip(max_size_tuple, tuple(img.shape))]
+        padded_img = torch.nn.functional.pad(img, tuple([0, padding[2], 0, padding[1], 0, padding[0]]))
         padded_imgs.append(padded_img)
 
         m = torch.zeros_like(img[0], dtype=torch.int, device=img.device)
@@ -666,8 +666,7 @@ def accuracy_onehot(pred, gt):
     return acc
 
 
-def interpolate(input, size=None, scale_factor=None, mode="nearest", align_corners=None):
-    # type: (Tensor, Optional[List[int]], Optional[float], str, Optional[bool]) -> Tensor
+def interpolate(input: Tensor, size: Optional[List[int]] = None, scale_factor: Optional[float] = None, mode: str = "nearest", align_corners: Optional[bool] = None) -> Tensor:
     r"""
     Equivalent to nn.functional.interpolate, but with support for empty batch sizes.
     This will eventually be supported natively by PyTorch, and this
@@ -675,13 +674,13 @@ def interpolate(input, size=None, scale_factor=None, mode="nearest", align_corne
     r"""
     if __torchvision_need_compat_flag < 0.7:
         if input.numel() > 0:
-            return torch.nn.functional.interpolate(input, size, scale_factor, mode, align_corners)
+            return cast(Tensor, torch.nn.functional.interpolate(input, size, scale_factor, mode, align_corners))
 
         output_shape = _output_size(2, input, size, scale_factor)
         output_shape = list(input.shape[:-2]) + list(output_shape)
-        return _new_empty_tensor(input, output_shape)
+        return cast(Tensor, _new_empty_tensor(input, output_shape))
     else:
-        return torchvision.ops.misc.interpolate(input, size, scale_factor, mode, align_corners)
+        return cast(Tensor, torchvision.ops.misc.interpolate(input, size, scale_factor, mode, align_corners))
 
 
 class color_sys:

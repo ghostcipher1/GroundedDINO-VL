@@ -37,7 +37,7 @@ def _decode_image_bytes(image_bytes: bytes) -> np.ndarray:
         img = Image.open(BytesIO(image_bytes)).convert("RGB")
         rgb = np.asarray(img)  # HxWx3 RGB uint8
         bgr = rgb[..., ::-1].copy()  # convert to BGR
-        return bgr
+        return np.asarray(bgr, dtype=np.uint8)  # type: ignore[no-any-return]
     except Exception:
         pass
 
@@ -49,7 +49,7 @@ def _decode_image_bytes(image_bytes: bytes) -> np.ndarray:
         bgr = cv2.imdecode(arr, cv2.IMREAD_COLOR)
         if bgr is None:
             raise ValueError("cv2.imdecode returned None")
-        return bgr
+        return np.asarray(bgr, dtype=np.uint8)  # type: ignore[no-any-return]
     except Exception as e:  # pragma: no cover
         raise ValueError(f"Failed to decode image bytes: {e}")
 

@@ -85,7 +85,7 @@ class DetectionResult:
             h, w = self.image_size
             boxes_xyxy = boxes_xyxy * torch.tensor([w, h, w, h])
 
-        return boxes_xyxy
+        return torch.as_tensor(boxes_xyxy, dtype=torch.float32)
 
     def __len__(self) -> int:
         """Return the number of detections."""
@@ -135,7 +135,7 @@ def load_model(
     args.device = device
 
     # Build model
-    model = build_model(args)
+    model: torch.nn.Module = build_model(args)
 
     # Load checkpoint
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
@@ -217,10 +217,10 @@ def preprocess_image(
         image = Image.fromarray(image)
     elif isinstance(image, torch.Tensor):
         # Assume it's already in the right format
-        return image
+        return torch.as_tensor(image, dtype=torch.float32)
 
     image_transformed, _ = transform(image, None)
-    return image_transformed
+    return torch.as_tensor(image_transformed, dtype=torch.float32)
 
 
 def predict(

@@ -101,7 +101,7 @@ class TransformerEncoderLayer(nn.Module):
         pos: Optional[Tensor] = None,
     ):
         # repeat attn mask
-        if src_mask.dim() == 3 and src_mask.shape[0] == src.shape[1]:
+        if src_mask is not None and src_mask.dim() == 3 and src_mask.shape[0] == src.shape[1]:
             # bs, num_q, num_k
             src_mask = src_mask.repeat(self.nhead, 1, 1)
 

@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import base64
 import os
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, cast
 from urllib.request import Request, urlopen
 
 from fastapi import FastAPI, HTTPException
@@ -29,7 +29,7 @@ from .config import DEFAULT_SETTINGS
 def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
     req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urlopen(req, timeout=timeout) as resp:
-        return resp.read()
+        return bytes(resp.read())
 
 
 def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
@@ -43,13 +43,18 @@ def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
     # Common fields: direct at root
     for key in ("image_bytes", "image", "image_url", "imageUrl", "img", "url"):
         if key in task:
-            return task[key]
+            val = task[key]
+            if isinstance(val, (str, bytes)):
+                return val
 
     # Under "data" (Label Studio style)
-    data = task.get("data") if isinstance(task.get("data"), dict) else {}
-    for key in ("image", "image_url", "imageUrl", "img", "url", "image_bytes"):
-        if key in data:
-            return data[key]
+    data = task.get("data")
+    if isinstance(data, dict):
+        for key in ("image", "image_url", "imageUrl", "img", "url", "image_bytes"):
+            if key in data:
+                val = data[key]
+                if isinstance(val, (str, bytes)):
+                    return val
 
     return None
 
@@ -61,18 +66,25 @@ def _extract_prompt(task: Dict[str, Any]) -> Union[str, List[str]]:
     """
     # Prefer explicit prompt at root
     for key in ("prompt", "caption", "instruction", "instructions"):
-        if key in task and task[key]:
-            return task[key]
+        if key in task:
+            val = task[key]
+            if val and isinstance(val, (str, list)):
+                return cast(Union[str, List[str]], val)
 
-    data = task.get("data") if isinstance(task.get("data"), dict) else {}
-    for key in ("prompt", "caption", "text", "instruction", "classes"):
-        if key in data and data[key]:
-            return data[key]
+    data = task.get("data")
+    if isinstance(data, dict):
+        for key in ("prompt", "caption", "text", "instruction", "classes"):
+            if key in data:
+                val = data[key]
+                if val and isinstance(val, (str, list)):
+                    return cast(Union[str, List[str]], val)
 
     # Label list
     for key in ("labels", "classes"):
-        if key in task and task[key]:
-            return task[key]
+        if key in task:
+            val = task[key]
+            if val and isinstance(val, (str, list)):
+                return cast(Union[str, List[str]], val)
 
     return "a photo"
 

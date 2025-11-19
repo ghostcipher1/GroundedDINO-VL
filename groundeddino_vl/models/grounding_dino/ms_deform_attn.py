@@ -16,11 +16,12 @@
 
 import math
 import warnings
-from typing import Optional
+from typing import Optional, cast
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 from torch.autograd import Function
 from torch.autograd.function import once_differentiable
 from torch.nn.init import constant_, xavier_uniform_
@@ -316,12 +317,13 @@ class MultiScaleDeformableAttention(nn.Module):
         bs, num_query, _ = query.shape
         bs, num_value, _ = value.shape
 
+        assert spatial_shapes is not None, "spatial_shapes cannot be None"
         assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
 
         value = self.value_proj(value)
         if key_padding_mask is not None:
-            value = value.masked_fill(key_padding_mask[..., None], float(0))
-        value = value.view(bs, num_value, self.num_heads, -1)
+            value = value.masked_fill(key_padding_mask[..., None], float(0))  # type: ignore[union-attr]
+        value = value.view(bs, num_value, self.num_heads, -1)  # type: ignore[union-attr]
         sampling_offsets = self.sampling_offsets(query).view(
             bs, num_query, self.num_heads, self.num_levels, self.num_points, 2
         )
@@ -338,6 +340,8 @@ class MultiScaleDeformableAttention(nn.Module):
         )
 
         # bs, num_query, num_heads, num_levels, num_points, 2
+        assert reference_points is not None, "reference_points cannot be None"
+        assert spatial_shapes is not None, "spatial_shapes cannot be None"
         if reference_points.shape[-1] == 2:
             offset_normalizer = torch.stack([spatial_shapes[..., 1], spatial_shapes[..., 0]], -1)
             sampling_locations = (
@@ -368,6 +372,7 @@ class MultiScaleDeformableAttention(nn.Module):
                 sampling_locations = sampling_locations.float()
                 attention_weights = attention_weights.float()
 
+            assert level_start_index is not None, "level_start_index cannot be None"
             output = MultiScaleDeformableAttnFunction.apply(
                 value,
                 spatial_shapes,
@@ -380,16 +385,16 @@ class MultiScaleDeformableAttention(nn.Module):
             if halffloat:
                 output = output.half()
         else:
-            output = multi_scale_deformable_attn_pytorch(
+            output = cast(Tensor, multi_scale_deformable_attn_pytorch(
                 value, spatial_shapes, sampling_locations, attention_weights
-            )
+            ))
 
         output = self.output_proj(output)
 
         if not self.batch_first:
             output = output.permute(1, 0, 2)
 
-        return output
+        return cast(Tensor, output)
 
 
 def create_dummy_class(klass, dependency, message=""):

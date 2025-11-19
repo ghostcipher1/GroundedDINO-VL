@@ -390,12 +390,30 @@ isort groundeddino_vl groundingdino tests
 # Lint code
 flake8 groundeddino_vl groundingdino tests --max-line-length=100
 
-# Type checking
+# Type checking (mypy)
+# Install optional type stubs for better type checking
+pip install types-PyYAML types-requests
+
+# Run mypy on ls_backend (fully type-checked)
+mypy groundeddino_vl/ls_backend --ignore-missing-imports
+
+# Run mypy on entire project (some warnings in legacy code)
 mypy groundeddino_vl --ignore-missing-imports
 
 # Security check
 bandit -r groundeddino_vl groundingdino
 ```
+
+### Type Checking Status
+
+**GroundedDINO-VL v2.0.1** includes comprehensive type annotations:
+
+- ✅ **ls_backend module**: Fully type-checked (0 errors)
+- ✅ **api module**: Fully type-checked (0 errors)
+- ✅ **utils.inference module**: Fully type-checked (0 errors)
+- ⚠️ **Legacy code**: Some untyped definitions remain for backward compatibility
+
+All public APIs in `groundeddino_vl.api` are properly type-hinted and can be used with type checkers like mypy, pyright, and IDEs with type support.
 
 ### Building Distributions
 

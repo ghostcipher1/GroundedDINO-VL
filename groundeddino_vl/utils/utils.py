@@ -3,7 +3,7 @@ import json
 import warnings
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 import numpy as np
 import torch
@@ -47,20 +47,20 @@ def renorm(
             str(img.size()),
         )
         img_perm = img.permute(1, 2, 0)
-        mean = torch.Tensor(mean)
-        std = torch.Tensor(std)
+        mean = cast(torch.FloatTensor, torch.Tensor(mean))
+        std = cast(torch.FloatTensor, torch.Tensor(std))
         img_res = img_perm * std + mean
-        return img_res.permute(2, 0, 1)
+        return cast(torch.FloatTensor, img_res.permute(2, 0, 1))
     else:  # img.dim() == 4
         assert img.size(1) == 3, 'img.size(1) shoule be 3 but "%d". (%s)' % (
             img.size(1),
             str(img.size()),
         )
         img_perm = img.permute(0, 2, 3, 1)
-        mean = torch.Tensor(mean)
-        std = torch.Tensor(std)
+        mean = cast(torch.FloatTensor, torch.Tensor(mean))
+        std = cast(torch.FloatTensor, torch.Tensor(std))
         img_res = img_perm * std + mean
-        return img_res.permute(0, 3, 1, 2)
+        return cast(torch.FloatTensor, img_res.permute(0, 3, 1, 2))
 
 
 class CocoClassMapper:
@@ -601,6 +601,6 @@ def get_phrases_from_posmap(posmap: torch.BoolTensor, tokenized: Dict, tokenizer
     if posmap.dim() == 1:
         non_zero_idx = posmap.nonzero(as_tuple=True)[0].tolist()
         token_ids = [tokenized["input_ids"][i] for i in non_zero_idx]
-        return tokenizer.decode(token_ids)
+        return tokenizer.decode(token_ids)  # type: ignore
     else:
         raise NotImplementedError("posmap must be 1-dim")

@@ -38,7 +38,7 @@ def load_model(model_config_path: str, model_checkpoint_path: str, device: str =
     return model
 
 
-def load_image(image_path: str) -> Tuple[np.array, torch.Tensor]:
+def load_image(image_path: str) -> Tuple[np.ndarray, torch.Tensor]:
     transform = T.Compose(
         [
             T.RandomResize([800], max_size=1333),
@@ -217,7 +217,7 @@ class Model:
         )
         image_pillow = Image.fromarray(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB))
         image_transformed, _ = transform(image_pillow, None)
-        return image_transformed
+        return torch.as_tensor(image_transformed, dtype=torch.float32)
 
     @staticmethod
     def post_process_result(
@@ -232,10 +232,10 @@ class Model:
 
     @staticmethod
     def phrases2classes(phrases: List[str], classes: List[str]) -> np.ndarray:
-        class_ids = []
+        class_ids: List[int | None] = []
         for phrase in phrases:
             try:
                 class_ids.append(classes.index(phrase))
             except ValueError:
                 class_ids.append(None)
-        return np.array(class_ids)
+        return np.asarray(class_ids, dtype=object)  # type: ignore[no-any-return]

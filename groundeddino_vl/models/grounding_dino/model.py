@@ -15,7 +15,7 @@
 # Copyright (c) 2020 SenseTime. All Rights Reserved.
 # ------------------------------------------------------------------------
 import copy
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import torch
 import torch.nn.functional as F
@@ -202,7 +202,7 @@ class GroundingDINO(nn.Module):
     def init_ref_points(self, use_num_queries):
         self.refpoint_embed = nn.Embedding(use_num_queries, self.query_dim)
 
-    def forward(self, samples: NestedTensor, targets: List = None, **kw):
+    def forward(self, samples: NestedTensor, targets: Optional[List] = None, **kw):
         """The forward expects a NestedTensor, which consists of:
            - samples.tensor: batched images, of shape [batch_size x 3 x H x W]
            - samples.mask: a binary mask of shape [batch_size x H x W], containing 1 on padded pixels
@@ -296,6 +296,7 @@ class GroundingDINO(nn.Module):
                 else:
                     src = self.input_proj[l](srcs[-1])
                 m = samples.mask
+                assert m is not None, "mask cannot be None"
                 mask = F.interpolate(m[None].float(), size=src.shape[-2:]).to(torch.bool)[0]
                 pos_l = self.backbone[1](NestedTensor(src, mask)).to(src.dtype)
                 srcs.append(src)
@@ -308,15 +309,15 @@ class GroundingDINO(nn.Module):
         )
 
         # deformable-detr-like anchor update
-        outputs_coord_list = []
+        outputs_coord_list_temp = []
         for dec_lid, (layer_ref_sig, layer_bbox_embed, layer_hs) in enumerate(
             zip(reference[:-1], self.bbox_embed, hs)
         ):
             layer_delta_unsig = layer_bbox_embed(layer_hs)
             layer_outputs_unsig = layer_delta_unsig + inverse_sigmoid(layer_ref_sig)
             layer_outputs_unsig = layer_outputs_unsig.sigmoid()
-            outputs_coord_list.append(layer_outputs_unsig)
-        outputs_coord_list = torch.stack(outputs_coord_list)
+            outputs_coord_list_temp.append(layer_outputs_unsig)
+        outputs_coord_list = torch.stack(outputs_coord_list_temp)
 
         # output
         outputs_class = torch.stack(
