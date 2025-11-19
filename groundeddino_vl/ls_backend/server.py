@@ -151,35 +151,28 @@ def create_app() -> Any:
         # Basic visibility only; avoid introducing logging dependencies here.
         print(f"[ls_backend] Optional DB initialization skipped/failed: {e}")
 
+    # Load model at startup if paths are provided
+    try:
+        config_path = os.environ.get("GDVL_CONFIG")
+        checkpoint_path = os.environ.get("GDVL_CHECKPOINT")
+
+        if config_path and checkpoint_path:
+            print(f"[ls_backend] Loading model at startup: config={config_path}, checkpoint={checkpoint_path}")
+            model_loader.load_model(
+                model_config_path=config_path,
+                model_checkpoint_path=checkpoint_path,
+                device=None,  # Auto-detect CUDA
+            )
+            print("[ls_backend] Model loaded successfully at startup")
+    except Exception as e:
+        print(f"[ls_backend] Model loading failed at startup: {e}")
+        raise
+
     @app.get("/health")
     def health() -> Dict[str, Any]:
         info = model_loader.get_model_info()
+        # Check if model is actually loaded (both config_path and checkpoint_path are set from load_model call)
         model_loaded = bool(info.get("config_path") and info.get("checkpoint_path"))
-        # If not explicitly loaded yet, detect bundled default model files
-        if not model_loaded:
-            try:
-                # server.py is at groundeddino_vl/ls_backend/server.py
-                # repo root is two levels up from here
-                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-                default_config = os.environ.get(
-                    "MODEL_CONFIG_PATH",
-                    os.path.join(
-                        project_root,
-                        "groundeddino_vl",
-                        "models",
-                        "configs",
-                        "GroundingDINO_SwinT_OGC.py",
-                    ),
-                )
-                default_ckpt = os.environ.get(
-                    "MODEL_CHECKPOINT_PATH",
-                    os.path.join(project_root, "checkpoints", "groundingdino_swint_ogc.pth"),
-                )
-                if os.path.isfile(default_config) and os.path.isfile(default_ckpt):
-                    model_loaded = True
-            except Exception:
-                # Be conservative: keep previous value
-                pass
         return {"status": "ok", "model_loaded": model_loaded}
 
     @app.get("/model-info")

@@ -96,6 +96,28 @@ def load_model(
         logger.exception("Failed to import GroundedDINO-VL high-level Model class")
         raise RuntimeError("GroundedDINO-VL Model class could not be imported")
 
+    # Auto-download missing model files if needed
+    try:
+        if not os.path.isfile(model_config_path) or not os.path.isfile(model_checkpoint_path):
+            logger.info(
+                "Model files not found. Attempting auto-download (config=%s, checkpoint=%s)",
+                model_config_path,
+                model_checkpoint_path,
+            )
+            from groundeddino_vl.weights_manager import ensure_weights
+
+            model_config_path, model_checkpoint_path = ensure_weights(
+                model_config_path, model_checkpoint_path
+            )
+            logger.info(
+                "Auto-download complete. Using: config=%s, checkpoint=%s",
+                model_config_path,
+                model_checkpoint_path,
+            )
+    except Exception as e:
+        logger.exception("Auto-download of model files failed")
+        raise
+
     # Validate inputs early for clearer errors
     try:
         _validate_paths(model_config_path, model_checkpoint_path)

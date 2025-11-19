@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "groundeddino-vl"
-version = "2.0.1"
+version = "2.0.2"
 description = "GroundedDINO-VL vision-language backend"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -55,6 +55,7 @@ dependencies = [
     "fastapi>=0.95.0",
     "uvicorn>=0.21.0",
     "SQLAlchemy>=2.0,<3.0",
+    "tqdm>=4.66.0",
 ]
 
 [project.optional-dependencies]
@@ -83,6 +84,9 @@ jetson = [
     # JetPack runtime compatibility
     # Install JetPack SDK separately: https://developer.nvidia.com/embedded/jetpack
 ]
+
+[project.scripts]
+groundeddino-vl-server = "groundeddino_vl.ls_backend.server:main"
 
 [project.urls]
 Homepage = "https://github.com/ghostcipher1/GroundedDINO-VL"

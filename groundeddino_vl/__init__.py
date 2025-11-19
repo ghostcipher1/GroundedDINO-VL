@@ -79,6 +79,9 @@ except Exception:  # pragma: no cover
     predict = _MissingDependencyProxy("predict")  # type: ignore
     preprocess_image = _MissingDependencyProxy("preprocess_image")  # type: ignore
 
+# Import weights manager (no heavy dependencies, always available)
+from groundeddino_vl.weights_manager import download_model_weights
+
 # Public API exports
 __all__ = [
     # Metadata
@@ -92,4 +95,6 @@ __all__ = [
     "annotate",
     # Data structures
     "DetectionResult",
+    # Utilities
+    "download_model_weights",
 ]
