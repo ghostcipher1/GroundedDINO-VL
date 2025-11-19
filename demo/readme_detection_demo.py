@@ -35,54 +35,27 @@ def main():
     parser = argparse.ArgumentParser(
         description="GroundedDINO-VL Object Detection - Simple API Demo"
     )
+    parser.add_argument("--config", "-c", type=str, required=True, help="Path to model config file")
     parser.add_argument(
-        "--config", "-c",
-        type=str,
-        required=True,
-        help="Path to model config file"
+        "--checkpoint", "-p", type=str, required=True, help="Path to model checkpoint"
+    )
+    parser.add_argument("--image", "-i", type=str, required=True, help="Path to input image")
+    parser.add_argument(
+        "--text", "-t", type=str, required=True, help='Text prompt (e.g., "car . person . dog")'
+    )
+    parser.add_argument("--output", "-o", type=str, default="outputs", help="Output directory")
+    parser.add_argument(
+        "--box-threshold", type=float, default=0.35, help="Box confidence threshold"
     )
     parser.add_argument(
-        "--checkpoint", "-p",
-        type=str,
-        required=True,
-        help="Path to model checkpoint"
-    )
-    parser.add_argument(
-        "--image", "-i",
-        type=str,
-        required=True,
-        help="Path to input image"
-    )
-    parser.add_argument(
-        "--text", "-t",
-        type=str,
-        required=True,
-        help='Text prompt (e.g., "car . person . dog")'
-    )
-    parser.add_argument(
-        "--output", "-o",
-        type=str,
-        default="outputs",
-        help="Output directory"
-    )
-    parser.add_argument(
-        "--box-threshold",
-        type=float,
-        default=0.35,
-        help="Box confidence threshold"
-    )
-    parser.add_argument(
-        "--text-threshold",
-        type=float,
-        default=0.25,
-        help="Text confidence threshold"
+        "--text-threshold", type=float, default=0.25, help="Text confidence threshold"
     )
     parser.add_argument(
         "--device",
         type=str,
         default="cuda",
         choices=["cuda", "cpu"],
-        help="Device to use for inference"
+        help="Device to use for inference",
     )
 
     args = parser.parse_args()
@@ -102,11 +75,7 @@ def main():
 
     # Step 1: Load the model (just one line!)
     print("\n[1/3] Loading model...")
-    model = load_model(
-        config_path=args.config,
-        checkpoint_path=args.checkpoint,
-        device=args.device
-    )
+    model = load_model(config_path=args.config, checkpoint_path=args.checkpoint, device=args.device)
     print("✓ Model loaded successfully")
 
     # Step 2: Load and prepare image
@@ -122,7 +91,7 @@ def main():
         text_prompt=args.text,
         box_threshold=args.box_threshold,
         text_threshold=args.text_threshold,
-        device=args.device
+        device=args.device,
     )
     print(f"✓ Inference complete")
 
@@ -130,7 +99,7 @@ def main():
     print(f"\n{'Results':=^50}")
     print(f"Found {len(result)} objects:")
     for i, (label, score) in enumerate(zip(result.labels, result.scores), 1):
-        box = result.boxes[i-1]
+        box = result.boxes[i - 1]
         print(f"  {i}. {label:20s} (confidence: {score:.3f})")
         print(f"     Box (cxcywh): [{box[0]:.3f}, {box[1]:.3f}, {box[2]:.3f}, {box[3]:.3f}]")
 
@@ -139,8 +108,10 @@ def main():
         boxes_xyxy = result.to_xyxy(denormalize=True)
         print(f"\nBoxes in pixel coordinates (x1, y1, x2, y2):")
         for i, box in enumerate(boxes_xyxy, 1):
-            print(f"  {i}. {result.labels[i-1]:20s}: "
-                  f"[{int(box[0])}, {int(box[1])}, {int(box[2])}, {int(box[3])}]")
+            print(
+                f"  {i}. {result.labels[i-1]:20s}: "
+                f"[{int(box[0])}, {int(box[1])}, {int(box[2])}, {int(box[3])}]"
+            )
 
     # Save annotated image
     print(f"\n{'Saving Results':=^50}")
