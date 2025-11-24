@@ -39,7 +39,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from tqdm import tqdm
@@ -92,9 +92,7 @@ def find_images(input_dir: Path) -> List[Path]:
     return sorted(set(images))
 
 
-def export_coco_json(
-    results: List[Dict[str, Any]], output_path: Path, classes: List[str]
-) -> None:
+def export_coco_json(results: List[Dict[str, Any]], output_path: Path, classes: List[str]) -> None:
     """Export results to COCO JSON format."""
     coco_output = {
         "info": {
@@ -150,9 +148,7 @@ def export_coco_json(
         json.dump(coco_output, f, indent=2)
 
 
-def export_yolo_format(
-    results: List[Dict[str, Any]], output_dir: Path, classes: List[str]
-) -> None:
+def export_yolo_format(results: List[Dict[str, Any]], output_dir: Path, classes: List[str]) -> None:
     """Export results to YOLO format (one .txt per image)."""
     labels_dir = output_dir / "labels"
     labels_dir.mkdir(parents=True, exist_ok=True)
@@ -239,9 +235,7 @@ def export_csv(results: List[Dict[str, Any]], output_path: Path) -> None:
 
     with open(output_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(
-            ["filename", "label", "score", "x1", "y1", "x2", "y2", "width", "height"]
-        )
+        writer.writerow(["filename", "label", "score", "x1", "y1", "x2", "y2", "width", "height"])
 
         for result in results:
             for detection in result["detections"]:
@@ -566,9 +560,7 @@ def main() -> None:
                     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
                     # Draw label background
-                    (label_w, label_h), _ = cv2.getTextSize(
-                        label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
-                    )
+                    (label_w, label_h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
                     cv2.rectangle(img, (x1, y1 - label_h - 10), (x1 + label_w, y1), (0, 255, 0), -1)
 
                     # Draw label text

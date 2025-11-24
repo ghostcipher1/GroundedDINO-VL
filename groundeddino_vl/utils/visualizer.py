@@ -224,7 +224,7 @@ class COCOVisualizer:
                 ax.imshow(heatmap)
         ax.set_axis_off()
 
-    def showAnns(self, anns, draw_bbox=False):
+    def showAnns(self, anns, draw_bbox=False):  # noqa: C901
         """
         Display the specified annotations.
         :param anns (array of object): annotations to display

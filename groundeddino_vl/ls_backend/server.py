@@ -202,7 +202,7 @@ def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
     raise ValueError("Unrecognized image reference; expected URL, base64, or bytes")
 
 
-def create_app() -> Any:
+def create_app() -> Any:  # noqa: C901
     """Create and return the FastAPI web application instance."""
     app = FastAPI(
         title="GroundedDINO-VL LS Backend",
