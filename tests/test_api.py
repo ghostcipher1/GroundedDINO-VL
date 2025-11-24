@@ -166,7 +166,7 @@ class TestAPIIntegration(unittest.TestCase):
             tempfile.NamedTemporaryFile(suffix=".pth") as checkpoint_file,
         ):
 
-            _model = load_model(
+            load_model(  # noqa: F841
                 config_path=config_file.name, checkpoint_path=checkpoint_file.name, device="cpu"
             )
 
@@ -182,12 +182,6 @@ class TestAPIIntegration(unittest.TestCase):
         # Create mock model
         mock_model = MagicMock()
         mock_model.tokenizer = MagicMock()
-
-        # Mock model output
-        _mock_outputs = {
-            "pred_logits": torch.rand(1, 10, 256),
-            "pred_boxes": torch.rand(1, 10, 4),
-        }
 
         with patch("groundeddino_vl.api._predict_internal") as mock_predict:
             # Mock internal predict to return simple results

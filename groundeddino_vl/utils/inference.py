@@ -99,9 +99,7 @@ def annotate(
     xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
     detections = sv.Detections(xyxy=xyxy)
 
-    labels = [
-        f"{phrase} {logit:.2f}" for phrase, logit in zip(phrases, logits)
-    ]  # noqa: E231
+    labels = [f"{phrase} {logit:.2f}" for phrase, logit in zip(phrases, logits)]  # noqa: E231
 
     # supervision 0.4.0 API doesn't have color_lookup parameter
     box_annotator = sv.BoxAnnotator()
