@@ -1,0 +1,103 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║            GroundedDINO-VL Batch Inference - Quick Reference             ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+BASIC USAGE
+───────────
+python -m groundeddino_vl.batch_inference \
+    --input /data/datasets/bears \
+    --output /data/results/bears \
+    --config models/GroundingDINO_SwinB_cfg.py \
+    --checkpoint checkpoints/groundingdino_swinb_cogcoor.pth
+
+CUSTOM CLASSES (Night Vyper)
+─────────────────────────────
+python -m groundeddino_vl.batch_inference \
+    --input /data/datasets/predators \
+    --output /data/results/predators \
+    --config models/GroundingDINO_SwinB_cfg.py \
+    --checkpoint checkpoints/groundingdino_swinb_cogcoor.pth \
+    --classes "bear,wolf,cougar,coyote,bobcat,fox" \
+    --box-threshold 0.30 \
+    --visualize
+
+OUTPUT FORMATS
+──────────────
+• results_coco.json          → COCO format for training
+• results_labelstudio.json   → Import to Label Studio
+• labels/*.txt               → YOLO format (one file per image)
+• results.csv                → Simple spreadsheet format
+• summary.json               → Statistics & performance metrics
+• visualizations/*.jpg       → Annotated images (if --visualize)
+
+KEY OPTIONS
+───────────
+--input, -i PATH             Input directory (searches recursively)
+--output, -o PATH            Output directory for all results
+--classes "a,b,c"            Comma-separated class list
+--box-threshold 0.25         Detection confidence (lower = more boxes)
+--text-threshold 0.25        Text matching confidence
+--format [all|coco|yolo|labelstudio|csv]
+--visualize                  Save annotated images
+--device cuda                GPU device (cuda or cpu)
+--batch-size 32              Checkpoint frequency
+
+DEFAULT CLASSES (26 total)
+──────────────────────────
+Predators: bear, bobcat, cougar, coyote, fox, wolf
+Wildlife: raccoon, skunk, opossum, rabbit, snake, deer
+Livestock: horse, cow, sheep, goat, pig, chicken
+Birds: peafowl, duck
+Other: person, automobile, pickup, tractor
+
+PERFORMANCE ESTIMATES
+─────────────────────
+RTX 4070: ~10-16 images/second  →  22,000 images in ~25 minutes
+RTX 4090: ~20-33 images/second  →  22,000 images in ~12 minutes
+
+LABEL STUDIO INTEGRATION
+─────────────────────────
+Method 1: Batch predictions (recommended for large datasets)
+  1. Generate predictions: --format labelstudio
+  2. Import JSON to Label Studio UI
+  3. Review and correct
+  
+Method 2: Live ML backend (for interactive labeling)
+  python -m groundeddino_vl.ls_backend.server \
+    --config models/GroundingDINO_SwinB_cfg.py \
+    --checkpoint checkpoints/groundingdino_swinb_cogcoor.pth
+  
+  Then add ML backend in Label Studio: http://localhost:9090
+
+TROUBLESHOOTING
+───────────────
+No detections?        → Lower thresholds: --box-threshold 0.15
+Too many false +?     → Raise thresholds: --box-threshold 0.35
+Out of memory?        → Use --device cpu (slower but works)
+Import errors?        → source .venv/bin/activate
+
+EXAMPLE WORKFLOW
+────────────────
+# Step 1: Process all species
+for species in bear wolf cougar coyote; do
+    python -m groundeddino_vl.batch_inference \
+        --input /data/datasets/$species \
+        --output /data/results/$species \
+        --classes "bear,wolf,cougar,coyote" \
+        --format labelstudio \
+        --visualize
+done
+
+# Step 2: Review visualizations for quality
+ls /data/results/*/visualizations/*.jpg | head -20 | xargs open
+
+# Step 3: Import to Label Studio
+# Upload results_labelstudio.json files via Label Studio UI
+
+# Step 4: Human review & correction in Label Studio
+
+# Step 5: Export final dataset from Label Studio
+
+SUPPORT
+───────
+GitHub: https://github.com/ghostcipher1/GroundedDINO-VL/issues

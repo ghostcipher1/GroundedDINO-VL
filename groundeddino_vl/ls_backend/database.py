@@ -55,7 +55,8 @@ def _resolve_database_url() -> str:
         pg_url = os.environ.get("POSTGRES_URL")
         if not pg_url:
             raise RuntimeError(
-                "USE_POSTGRESQL=true but POSTGRES_URL is not set. Example: postgresql+psycopg://user:pass@host/db"
+                "USE_POSTGRESQL=true but POSTGRES_URL is not set. "
+                "Example: postgresql+psycopg://user: pass@host/db"
             )
         return pg_url
 
@@ -63,7 +64,7 @@ def _resolve_database_url() -> str:
     if sqlite_path:
         # Ensure absolute path for sqlite file
         abs_path = os.path.abspath(sqlite_path)
-        return f"sqlite:///{abs_path}"
+        return f"sqlite:///{abs_path}"  # noqa: E231
 
     # In-memory SQLite by default
     return "sqlite://"

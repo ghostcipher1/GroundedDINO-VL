@@ -110,14 +110,25 @@ def run_inference(
     image_bgr = _decode_image_bytes(image_bytes)
     h, w = image_bgr.shape[:2]
 
-    # Load model (singleton) using default settings
-    model = model_loader.load_model(
-        model_config_path=DEFAULT_SETTINGS.model_config_path
-        or "groundeddino_vl/models/configs/GroundingDINO_SwinB_cfg.py",
-        model_checkpoint_path=DEFAULT_SETTINGS.model_checkpoint_path
-        or "checkpoints/groundingdino_swinb_cogcoor.pth",
-        device=None,
-    )
+    # Get already-loaded model singleton (loaded at startup)
+    # Don't pass paths to avoid unnecessary reloading checks
+    info = model_loader.get_model_info()
+    if info.get("config_path") and info.get("checkpoint_path"):
+        # Model already loaded, reuse it
+        model = model_loader.load_model(
+            model_config_path=info["config_path"],
+            model_checkpoint_path=info["checkpoint_path"],
+            device=None,
+        )
+    else:
+        # Fallback: load with default settings
+        model = model_loader.load_model(
+            model_config_path=DEFAULT_SETTINGS.model_config_path
+            or "groundeddino_vl/models/configs/GroundingDINO_SwinB_cfg.py",
+            model_checkpoint_path=DEFAULT_SETTINGS.model_checkpoint_path
+            or "checkpoints/groundingdino_swinb_cogcoor.pth",
+            device=None,
+        )
 
     box_th = float(getattr(DEFAULT_SETTINGS, "box_threshold", 0.25))
     text_th = float(getattr(DEFAULT_SETTINGS, "text_threshold", 0.25))
@@ -185,7 +196,7 @@ def run_inference(
     from .utils import build_ls_prediction  # local import to avoid cycles
 
     ls_prediction = build_ls_prediction(
-        bboxes, from_name="bbox", to_name="image", model_version=model_version
+        bboxes, from_name="label", to_name="image", model_version=model_version
     )
 
     return {

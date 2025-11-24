@@ -1,0 +1,59 @@
+# GroundedDINO-VL Development Docker Image
+# Uses local source code instead of PyPI package
+
+FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3.11 \
+    python3.11-distutils \
+    python3-pip \
+    git \
+    wget \
+    curl \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Make Python 3.11 the default
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
+# Set working directory
+WORKDIR /app
+
+# Upgrade pip and install build tools
+RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Install PyTorch with CUDA 12.8 support
+RUN python3 -m pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# Copy local source code
+COPY . /app/
+
+# Install from local source with all dependencies
+RUN python3 -m pip install -e ".[ls-backend]"
+
+# Create models directory (weights will be mounted as volume)
+RUN mkdir -p /app/models
+
+# Expose port for FastAPI server
+EXPOSE 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:9090/health || exit 1
+
+# Default command (can be overridden in docker-compose)
+CMD ["python3", "-m", "groundeddino_vl.ls_backend.server", \
+     "--config", "/app/models/GroundingDINO_SwinB_cfg.py", \
+     "--checkpoint", "/app/models/groundingdino_swinb_cogcoor.pth", \
+     "--port", "9090"]

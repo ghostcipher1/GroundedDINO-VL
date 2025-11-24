@@ -14,7 +14,7 @@ from groundeddino_vl.utils.slconfig import SLConfig
 
 def slprint(x, name="x"):
     if isinstance(x, (torch.Tensor, np.ndarray)):
-        print(f"{name}.shape:", x.shape)
+        print(f"{name}.shape:", x.shape)  # noqa: E231
     elif isinstance(x, (tuple, list)):
         print("type x:", type(x))
         for i in range(min(10, len(x))):
@@ -23,7 +23,7 @@ def slprint(x, name="x"):
         for k, v in x.items():
             slprint(v, f"{name}[{k}]")
     else:
-        print(f"{name}.type:", type(x))
+        print(f"{name}.type:", type(x))  # noqa: E231
 
 
 def clean_state_dict(state_dict):

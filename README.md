@@ -49,6 +49,7 @@ This project provides a clean, modernized implementation while maintaining compa
 - [Installation Guide](docs/INSTALLATION.md) - System requirements, installation methods, and verification
 - [Quick Start Guide](docs/QUICKSTART.md) - Basic usage examples and common workflows
 - [API Reference](docs/API_REFERENCE.md) - Complete API documentation with examples
+- **[Batch Inference](BATCH_INFERENCE_QUICKSTART.txt)** - Process thousands of images with COCO/YOLO/Label Studio export
 
 ### Advanced Topics
 - [Label Studio Integration](docs/LABEL_STUDIO.md) - Auto-annotation and ML backend setup

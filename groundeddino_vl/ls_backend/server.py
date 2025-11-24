@@ -61,10 +61,41 @@ def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
     return None
 
 
+# Default wildlife detection class list (26 classes)
+# TODO: make configurable via env var or config file
+DEFAULT_WILDLIFE_CLASSES = [
+    "bear",
+    "bobcat",
+    "cougar",
+    "coyote",
+    "fox",
+    "wolf",
+    "raccoon",
+    "skunk",
+    "opossum",
+    "snake",
+    "horse",
+    "cow",
+    "sheep",
+    "goat",
+    "peafowl",
+    "duck",
+    "rabbit",
+    "chicken",
+    "pig",
+    "deer",
+    "automobile",
+    "pickup",
+    "tractor",
+    "person",
+    "field",
+]
+
+
 def _extract_prompt(task: Dict[str, Any]) -> Union[str, List[str]]:
     """Extract labeling instructions/caption/classes from task.
 
-    Heuristics looking at several common fields. Falls back to a generic caption.
+    Heuristics looking at several common fields. Falls back to DEFAULT_WILDLIFE_CLASSES.
     """
     # Prefer explicit prompt at root
     for key in ("prompt", "caption", "instruction", "instructions"):
@@ -88,7 +119,37 @@ def _extract_prompt(task: Dict[str, Any]) -> Union[str, List[str]]:
             if val and isinstance(val, (str, list)):
                 return cast(Union[str, List[str]], val)
 
-    return "a photo"
+    # Use wildlife class list instead of generic "a photo"
+    return DEFAULT_WILDLIFE_CLASSES
+
+
+def _normalize_image_url(url: str) -> str:
+    """Normalize image URL to Label Studio format without hostname/port.
+
+    Converts URLs like:
+      http://localhost:9090/data/local-files/?d=datasets/bear/bear_0006.jpg
+    To:
+      /data/local-files/?d=/data/datasets/bear/bear_0006.jpg
+    """
+    if not isinstance(url, str):
+        return url
+
+    # If it's a local file server URL with hostname/port, strip those
+    if "/data/local-files/" in url:
+        import urllib.parse
+
+        parsed = urllib.parse.urlparse(url)
+        query_params = urllib.parse.parse_qs(parsed.query)
+
+        if "d" in query_params:
+            file_path = query_params["d"][0]
+            # Ensure path starts with /data/
+            if not file_path.startswith("/data/"):
+                file_path = f"/data/{file_path}"
+            # Return normalized URL without hostname/port
+            return f"/data/local-files/?d={file_path}"
+
+    return url
 
 
 def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
@@ -118,7 +179,13 @@ def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
         parsed = urllib.parse.urlparse(s)
         query_params = urllib.parse.parse_qs(parsed.query)
         if "d" in query_params:
-            file_path = os.path.join("/data", query_params["d"][0])
+            file_path_param = query_params["d"][0]
+            # Handle both /data/datasets/... and datasets/... formats
+            if file_path_param.startswith("/data/"):
+                file_path = file_path_param
+            else:
+                file_path = os.path.join("/data", file_path_param)
+
             if os.path.isfile(file_path):
                 with open(file_path, "rb") as f:
                     return f.read()
@@ -173,7 +240,8 @@ def create_app() -> Any:
 
         if config_path and checkpoint_path:
             print(
-                f"[ls_backend] Loading model at startup: config={config_path}, checkpoint={checkpoint_path}"
+                f"[ls_backend] Loading model at startup: config={config_path}, "
+                f"checkpoint={checkpoint_path}"
             )
             model_loader.load_model(
                 model_config_path=config_path,
@@ -188,7 +256,8 @@ def create_app() -> Any:
     @app.get("/health")
     def health() -> Dict[str, Any]:
         info = model_loader.get_model_info()
-        # Check if model is actually loaded (both config_path and checkpoint_path are set from load_model call)
+        # Check if model is actually loaded (both config_path and
+        # checkpoint_path are set from load_model call)
         model_loaded = bool(info.get("config_path") and info.get("checkpoint_path"))
         return {"status": "ok", "model_loaded": model_loaded}
 
@@ -248,6 +317,8 @@ def create_app() -> Any:
     @app.post("/predict")
     def predict(task: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Dict[str, Any]:
         tasks: List[Dict[str, Any]]
+        is_single_task = False
+
         if isinstance(task, list):
             tasks = task
         elif isinstance(task, dict):
@@ -255,18 +326,50 @@ def create_app() -> Any:
             if "tasks" in task:
                 tasks = task["tasks"]
             else:
+                # Single task sent directly
                 tasks = [task]
+                is_single_task = True
         else:
             raise HTTPException(
                 status_code=400, detail="Invalid JSON body; expected object or list"
             )
 
+        # Log batch size for debugging
+        print(f"[predict] Processing {len(tasks)} task(s), is_single_task={is_single_task}")
+
+        # For batch requests, return all predictions to match task count
+        # Note: Label Studio has a 100s timeout by default
+        # With optimized model loading, each image takes ~1-2 seconds
+        # So we can safely process up to ~50-80 images in a batch
+        # For larger batches, you need to either:
+        # 1. Select smaller chunks (recommended: 50-100 tasks at a time)
+        # 2. Increase Label Studio's ML_TIMEOUT_PREDICT env var
+        if not is_single_task and len(tasks) > 1000:
+            print(
+                f"[WARNING] Large batch of {len(tasks)} tasks may timeout. "
+                f"Consider processing in smaller chunks."
+            )
+
         predictions: List[Any] = []
-        for t in tasks:
+        for idx, t in enumerate(tasks):
+            # Log task ID for batch debugging
+            task_id = t.get("id", "unknown")
+            if idx < 3 or idx % 10 == 0:  # Log first 3 and every 10th task
+                print(f"[predict] Processing task {idx+1}/{len(tasks)}, id={task_id}")
+
+            # Normalize image URL in task data before processing
             img_ref = _maybe_extract_image_ref(t)
             if img_ref is None:
                 print(f"[ERROR] No image reference found in task: {t}")
                 raise HTTPException(status_code=400, detail="No image reference found in task")
+
+            # Normalize the image URL if it's a string (for Label Studio compatibility)
+            if isinstance(img_ref, str):
+                normalized_url = _normalize_image_url(img_ref)
+                # Update the task data with normalized URL
+                if "data" in t and "image" in t["data"]:
+                    t["data"]["image"] = normalized_url
+
             try:
                 image_bytes = _to_image_bytes(img_ref)
             except Exception as e:
@@ -284,13 +387,24 @@ def create_app() -> Any:
 
             # Append LS-formatted prediction - extract 'result' field from labelstudio dict
             ls_output = result["labelstudio"]
+
+            # For batch requests, include task ID in prediction
+            if not is_single_task and "id" in t:
+                if isinstance(ls_output, dict):
+                    ls_output["task"] = t["id"]
+
             if isinstance(ls_output, dict) and "result" in ls_output:
                 predictions.append(ls_output)
             else:
                 predictions.append(ls_output)
 
-        # Return in the format Label Studio expects
-        return {"results": predictions}
+        # Return format depends on whether it was a single task or multiple
+        # Single task: {"result": [...], "score": 0.x, "model_version": "..."}
+        # Multiple tasks: {"results": [{...}, {...}]}
+        if is_single_task and len(predictions) == 1:
+            return predictions[0]
+        else:
+            return {"results": predictions}
 
     return app
 

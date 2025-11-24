@@ -99,13 +99,14 @@ def annotate(
     xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
     detections = sv.Detections(xyxy=xyxy)
 
-    labels = [f"{phrase} {logit:.2f}" for phrase, logit in zip(phrases, logits)]
+    labels = [
+        f"{phrase} {logit:.2f}" for phrase, logit in zip(phrases, logits)
+    ]  # noqa: E231
 
-    box_annotator = sv.BoxAnnotator(color_lookup=sv.ColorLookup.INDEX)
-    label_annotator = sv.LabelAnnotator(color_lookup=sv.ColorLookup.INDEX)
+    # supervision 0.4.0 API doesn't have color_lookup parameter
+    box_annotator = sv.BoxAnnotator()
     annotated_frame = cv2.cvtColor(image_source, cv2.COLOR_RGB2BGR)
-    annotated_frame = box_annotator.annotate(scene=annotated_frame, detections=detections)
-    annotated_frame = label_annotator.annotate(
+    annotated_frame = box_annotator.annotate(
         scene=annotated_frame, detections=detections, labels=labels
     )
     return annotated_frame

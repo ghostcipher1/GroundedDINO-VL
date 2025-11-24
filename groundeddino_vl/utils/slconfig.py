@@ -245,7 +245,7 @@ class SLConfig(object):
             if all(isinstance(_, dict) for _ in v):
                 v_str = "[\n"
                 v_str += "\n".join(
-                    f"dict({_indent(_format_dict(v_), indent)})," for v_ in v
+                    f"dict({_indent(_format_dict(v_), indent)})," for v_ in v  # noqa: E231
                 ).rstrip(",")
                 if use_mapping:
                     k_str = f"'{k}'" if isinstance(k, str) else str(k)

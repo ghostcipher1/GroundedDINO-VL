@@ -179,7 +179,8 @@ class COCOVisualizer:
                 cate_id = int(tgt["labels"][idx])
                 _string = str(cate_id) + ":" + " ".join(strlist)
                 bbox_x, bbox_y, bbox_w, bbox_h = boxes[idx]
-                # ax.text(bbox_x, bbox_y, _string, color='black', bbox={'facecolor': 'yellow', 'alpha': 1.0, 'pad': 1})
+                # ax.text(bbox_x, bbox_y, _string, color='black',
+                #         bbox={'facecolor': 'yellow', 'alpha': 1.0, 'pad': 1})
                 ax.text(
                     bbox_x,
                     bbox_y,
@@ -193,7 +194,8 @@ class COCOVisualizer:
             for idx, bl in enumerate(tgt["box_label"]):
                 _string = str(bl)
                 bbox_x, bbox_y, bbox_w, bbox_h = boxes[idx]
-                # ax.text(bbox_x, bbox_y, _string, color='black', bbox={'facecolor': 'yellow', 'alpha': 1.0, 'pad': 1})
+                # ax.text(bbox_x, bbox_y, _string, color='black',
+                #         bbox={'facecolor': 'yellow', 'alpha': 1.0, 'pad': 1})
                 ax.text(
                     bbox_x,
                     bbox_y,

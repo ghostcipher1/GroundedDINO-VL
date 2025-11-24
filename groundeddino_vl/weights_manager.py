@@ -151,8 +151,9 @@ def _download_file_simple(url: str, output_path: Path, timeout: int = 600) -> No
                         percent = (downloaded / total_size) * 100
                         mb_down = downloaded / (1024 * 1024)
                         mb_total = total_size / (1024 * 1024)
-                        print(
-                            f"\r[weights_manager] Downloaded: {mb_down:.1f}MB / {mb_total:.1f}MB ({percent:.1f}%)",
+                        print(  # noqa: E231, E501
+                            f"\r[weights_manager] Downloaded: {mb_down:.1f}MB / "
+                            f"{mb_total:.1f}MB ({percent:.1f}%)",
                             end="",
                             flush=True,
                         )
@@ -187,7 +188,7 @@ def _ensure_checkpoint_file(models_dir: Path) -> Path:
     if checkpoint_path.exists():
         file_size_mb = checkpoint_path.stat().st_size / (1024 * 1024)
         print(f"[weights_manager] Using existing checkpoint: {checkpoint_path}")
-        print(f"[weights_manager] File size: {file_size_mb:.1f}MB")
+        print(f"[weights_manager] File size: {file_size_mb:.1f}MB")  # noqa: E231
 
         # Optionally validate checksum if known
         if KNOWN_CHECKSUMS[DEFAULT_CHECKPOINT_FILE]:

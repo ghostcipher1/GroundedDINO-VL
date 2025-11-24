@@ -107,10 +107,11 @@ def generalized_box_iou_pairwise(boxes1, boxes2):
 def masks_to_boxes(masks):
     """Compute the bounding boxes around the provided masks
 
-    The masks should be in format [N, H, W] where N is the number of masks, (H, W) are the spatial dimensions.
+    The masks should be in format [N, H, W] where N is the number of masks,
+    (H, W) are the spatial dimensions.
 
     Returns a [N, 4] tensors, with the boxes in xyxy format
-    r"""
+    """
     if masks.numel() == 0:
         return torch.zeros((0, 4), device=masks.device)
 

@@ -360,7 +360,7 @@ def convert_to_labelstudio_format(
         # LS result entry with required names
         res: Dict[str, Any] = {
             "type": "rectanglelabels",
-            "from_name": "bbox",
+            "from_name": "label",
             "to_name": "image",
             "value": value,
         }
