@@ -54,17 +54,15 @@ def test_import_util():
 
 
 def test_import_datasets():
-    """Test that groundingdino.datasets can be imported."""
+    """Test that groundingdino.datasets can be imported.
+
+    Note: Only module-level access works via the compatibility shim.
+    Deep imports like 'from groundingdino.datasets import transforms'
+    are no longer supported. Use groundeddino_vl for internal module access.
+    """
     from groundingdino import datasets
 
     assert datasets is not None
-
-
-def test_import_datasets_transforms():
-    """Test that groundingdino.datasets.transforms can be imported."""
-    from groundingdino.datasets import transforms
-
-    assert transforms is not None
 
 
 if __name__ == "__main__":
