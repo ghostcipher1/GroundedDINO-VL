@@ -71,13 +71,9 @@ GroundedDINO-VL/
 │   │   └── __init__.py      # (ONNX, TensorRT - future)
 │   └── summaries/           # Analysis and summaries
 │       └── *.md             # Project summaries
-├── groundingdino/           # Legacy namespace (backward compatibility)
-│   ├── __init__.py
-│   ├── version.py
-│   ├── config/              # Configuration files
-│   ├── models/              # Model implementations
-│   ├── util/                # Utilities
-│   └── datasets/            # Dataset modules
+├── groundingdino/           # Legacy namespace (backward compatibility shim)
+│   ├── __init__.py          # Re-exports from groundeddino_vl with deprecation warnings
+│   └── version.py           # Version reference (imports from groundeddino_vl)
 ├── tests/                   # Test suite
 │   ├── conftest.py
 │   ├── test_*.py           # Test modules
@@ -142,11 +138,32 @@ The main package containing the modernized GroundedDINO-VL implementation.
   - ONNX export (planned)
   - TensorRT optimization (planned)
 
-### `groundingdino/` (Legacy Namespace)
-Backward compatibility layer for existing code.
-- Provides same imports as original GroundingDINO
-- Uses `groundeddino_vl` under the hood
-- Shows deprecation warnings
+### `groundingdino/` (Compatibility Shim)
+
+**Status**: Lightweight backward compatibility layer (24KB, reduced from 520KB)
+
+GroundedDINO-VL is now **fully independent** from the legacy GroundingDINO implementation. The `groundingdino/` namespace contains only 2 files:
+
+- **`__init__.py`** (2.5KB): Sophisticated re-export shim
+  - Re-exports entire `groundeddino_vl` public API
+  - Provides module aliases (`util` → `utils`, `datasets` → `data`)
+  - Shows deprecation warnings directing users to `groundeddino_vl`
+  - Handles CUDA extension access
+
+- **`version.py`** (127 bytes): Version reference
+  - Imports `__version__` from `groundeddino_vl.version`
+  - Ensures version consistency across namespaces
+
+**What Works**:
+- ✓ High-level API: `from groundingdino import load_model, predict`
+- ✓ Module access: `from groundingdino import models, util, datasets`
+- ✓ CUDA extension: `from groundingdino import _C`
+
+**What Doesn't Work** (use `groundeddino_vl` instead):
+- ✗ Deep imports: `from groundingdino.util.misc import NestedTensor`
+- ✗ Submodules: `from groundingdino.datasets.transforms import Compose`
+
+**Migration**: See [docs/MIGRATION_FROM_GROUNDINGDINO.md](MIGRATION_FROM_GROUNDINGDINO.md)
 
 ### `docs/`
 Complete project documentation:

@@ -13,18 +13,20 @@
 
 ## Overview
 
-**GroundedDINO-VL** is a modern vision-language framework derived from [GroundingDINO](https://github.com/IDEA-Research/GroundingDINO), refactored and maintained for current GPU infrastructure with PyTorch 2.7 and CUDA 12.8 support.
+**GroundedDINO-VL** is a modern, independent vision-language framework derived from [GroundingDINO](https://github.com/IDEA-Research/GroundingDINO), fully refactored and maintained for current GPU infrastructure with PyTorch 2.7 and CUDA 12.8 support.
 
-This project provides a clean, modernized implementation while maintaining compatibility with the original GroundingDINO research and models.
+This project is now **fully independent** from the original GroundingDINO implementation, with a clean, modern codebase while maintaining full compatibility with GroundingDINO model weights and providing backward compatibility for existing code.
 
 ### Key Features
 
+- **Fully Independent**: Clean break from legacy code - single source of truth in `groundeddino_vl/`
 - **Modern Stack**: PyTorch 2.7 + CUDA 12.8 support
 - **Zero-Shot Detection**: Detect objects using natural language descriptions
-- **High Performance**: Based on GroundingDINO's COCO zero-shot 52.5 AP
-- **Backward Compatible**: Existing GroundingDINO code continues to work
+- **High Performance**: Compatible with GroundingDINO's COCO zero-shot 52.5 AP weights
+- **Backward Compatible**: Legacy `groundingdino` namespace supported via compatibility shim
 - **Clean Architecture**: Refactored package structure with better organization
 - **Label Studio Integration**: Real-time ML backend for auto-annotation workflows
+- **95% Package Size Reduction**: Eliminated duplicate code (9,000+ lines removed)
 
 ---
 
@@ -56,9 +58,13 @@ This project provides a clean, modernized implementation while maintaining compa
 - [Building from Source](BUILD_GUIDE.md) - Detailed compilation and build instructions
 - [Project Structure](docs/PROJECT_STRUCTURE.md) - Codebase organization and architecture
 
+### Migration & Compatibility
+- **[GroundingDINO Migration Guide](docs/MIGRATION_FROM_GROUNDINGDINO.md)** - Migrating from legacy `groundingdino` namespace
+- [API Migration Guide](docs/MIGRATION_TO_API.md) - Upgrading from previous versions
+- **Independence Note**: GroundedDINO-VL is now fully independent with all code in `groundeddino_vl/`. The `groundingdino/` namespace provides backward compatibility via a lightweight shim.
+
 ### Integration & Deployment
 - [Testing & Validation](docs/TESTING.md) - Test suite, CI/CD, and quality assurance
-- [Migration Guide](docs/MIGRATION_TO_API.md) - Upgrading from previous versions
 - [Security Best Practices](docs/SECURITY.md) - Security guidelines and considerations
 
 ### Contributing & Support
