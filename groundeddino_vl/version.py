@@ -5,4 +5,4 @@ try:
     __version__ = _pkg_version("groundeddino-vl")
 except PackageNotFoundError:
     # Package is not installed (e.g., running from source without installation)
-    __version__ = "1.0.0b2"
+    __version__ = "1.1.0"
