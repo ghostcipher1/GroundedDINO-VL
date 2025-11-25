@@ -101,12 +101,12 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["groundeddino_vl*", "groundingdino*"]
+include = ["groundeddino_vl*", "groundingdino"]  # Only top-level groundingdino
 exclude = ["tests*", "demo*", "configs*"]
 
 [tool.setuptools.package-data]
 groundeddino_vl = ["**/*.cu", "**/*.cpp", "**/*.h", "**/*.cuh", "**/*.py"]
-groundingdino = ["**/*.py"]
+groundingdino = ["*.py"]  # Only root-level .py files (no subdirectories)
 
 # ============================================================================
 # C++17 Extension Build Configuration

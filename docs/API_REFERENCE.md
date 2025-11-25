@@ -555,17 +555,37 @@ Detection = Tuple[str, float, BoxCXCYWH]  # (label, score, box)
 
 ## Backward Compatibility
 
-Legacy imports from `groundingdino` package are still supported:
+**GroundedDINO-VL is now fully independent** from the legacy GroundingDINO implementation. The `groundingdino/` namespace provides a lightweight compatibility shim (24KB, reduced from 520KB).
+
+### What Still Works
+
+High-level API and module-level access via the shim (with deprecation warnings):
 
 ```python
-# Old API (deprecated but functional)
-import groundingdino
-from groundingdino.util import inference  # Note: 'util' not 'utils'
+# High-level API (works via shim, shows deprecation warning)
+from groundingdino import load_model, predict, annotate
 
-# New API (recommended)
-import groundeddino_vl
-from groundeddino_vl.utils import inference  # Note: 'utils' (plural)
+# Module-level access (works via shim)
+from groundingdino import models, util, datasets
 ```
+
+### What No Longer Works
+
+Deep imports into internal modules are no longer supported:
+
+```python
+# ✗ No longer works (use groundeddino_vl instead)
+from groundingdino.util.misc import NestedTensor
+from groundingdino.datasets.transforms import Compose
+
+# ✓ Use groundeddino_vl for internal modules
+from groundeddino_vl.utils.misc import NestedTensor
+from groundeddino_vl.data.transforms import Compose
+```
+
+**Note**: `util` → `utils` and `datasets` → `data` in the new namespace.
+
+**Migration Guide**: See [MIGRATION_FROM_GROUNDINGDINO.md](MIGRATION_FROM_GROUNDINGDINO.md) for detailed migration instructions
 
 ---
 
