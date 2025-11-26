@@ -97,21 +97,24 @@ def annotate(
     h, w, _ = image_source.shape
     boxes = boxes * torch.Tensor([w, h, w, h])
     xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
-    detections = sv.Detections(xyxy=xyxy)
+
+    # Create class_id array for supervision compatibility
+    class_ids = np.arange(len(xyxy))
+    detections = sv.Detections(xyxy=xyxy, class_id=class_ids)
 
     labels = [f"{phrase} {logit:.2f}" for phrase, logit in zip(phrases, logits)]  # noqa: E231
 
-    # supervision 0.4.0 API doesn't have color_lookup parameter
+    # Try different annotation approaches for supervision compatibility
     box_annotator = sv.BoxAnnotator()
     annotated_frame = cv2.cvtColor(image_source, cv2.COLOR_RGB2BGR)
 
-    # Try with labels parameter for newer supervision versions, fallback without for older versions
     try:
+        # Try with labels parameter (newer supervision versions)
         annotated_frame = box_annotator.annotate(
             scene=annotated_frame, detections=detections, labels=labels
         )
-    except TypeError:
-        # Fallback for supervision versions that don't support labels parameter
+    except (TypeError, ValueError):
+        # Fallback: just draw boxes without labels
         annotated_frame = box_annotator.annotate(
             scene=annotated_frame, detections=detections
         )
