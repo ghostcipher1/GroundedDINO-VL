@@ -104,9 +104,18 @@ def annotate(
     # supervision 0.4.0 API doesn't have color_lookup parameter
     box_annotator = sv.BoxAnnotator()
     annotated_frame = cv2.cvtColor(image_source, cv2.COLOR_RGB2BGR)
-    annotated_frame = box_annotator.annotate(
-        scene=annotated_frame, detections=detections, labels=labels
-    )
+
+    # Try with labels parameter for newer supervision versions, fallback without for older versions
+    try:
+        annotated_frame = box_annotator.annotate(
+            scene=annotated_frame, detections=detections, labels=labels
+        )
+    except TypeError:
+        # Fallback for supervision versions that don't support labels parameter
+        annotated_frame = box_annotator.annotate(
+            scene=annotated_frame, detections=detections
+        )
+
     return annotated_frame
 
 
