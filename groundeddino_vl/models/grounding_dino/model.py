@@ -221,7 +221,6 @@ class GroundingDINO(nn.Module):
             captions = kw["captions"]
         else:
             captions = [t["caption"] for t in targets]
-        len(captions)
 
         # encoder texts
         tokenized = self.tokenizer(captions, padding="longest", return_tensors="pt").to(
@@ -250,7 +249,6 @@ class GroundingDINO(nn.Module):
             tokenized_for_encoder["attention_mask"] = text_self_attention_masks
             tokenized_for_encoder["position_ids"] = position_ids
         else:
-            # import ipdb; ipdb.set_trace()
             tokenized_for_encoder = tokenized
 
         bert_output = self.bert(**tokenized_for_encoder)  # bs, 195, 768
@@ -274,8 +272,6 @@ class GroundingDINO(nn.Module):
             "position_ids": position_ids,  # bs, 195
             "text_self_attention_masks": text_self_attention_masks,  # bs, 195,195
         }
-
-        # import ipdb; ipdb.set_trace()
 
         if isinstance(samples, (list, torch.Tensor)):
             samples = nested_tensor_from_tensor_list(samples)
@@ -353,7 +349,7 @@ class GroundingDINO(nn.Module):
         ]
 
 
-@MODULE_BUILD_FUNCS.registe_with_name(module_name="groundingdino")
+@MODULE_BUILD_FUNCS.register_with_name(module_name="groundingdino")
 def build_groundingdino(args):
 
     backbone = build_backbone(args)

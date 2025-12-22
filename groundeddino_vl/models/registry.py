@@ -40,7 +40,7 @@ class Registry(object):
     def get(self, key):
         return self._module_dict.get(key, None)
 
-    def registe_with_name(self, module_name=None, force=False):
+    def register_with_name(self, module_name=None, force=False):
         return partial(self.register, module_name=module_name, force=force)
 
     def register(self, module_build_function, module_name=None, force=False):

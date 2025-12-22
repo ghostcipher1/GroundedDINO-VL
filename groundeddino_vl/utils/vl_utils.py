@@ -75,9 +75,9 @@ def build_captions_and_token_span(cat_list, force_lowercase):
                 continue
             if len(captions) > 0:
                 captions = captions + " "
-            strat_idx = len(captions)
-            end_idx = strat_idx + len(subname)
-            tokens_positive_i.append([strat_idx, end_idx])
+            start_idx = len(captions)
+            end_idx = start_idx + len(subname)
+            tokens_positive_i.append([start_idx, end_idx])
             captions = captions + subname
 
         if len(tokens_positive_i) > 0:
