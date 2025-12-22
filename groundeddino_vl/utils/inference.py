@@ -174,12 +174,19 @@ class Model:
         )
         source_h, source_w, _ = image.shape
         detections = Model.post_process_result(
-            source_h=source_h, source_w=source_w, boxes=boxes, logits=logits
+            source_h=source_h,
+            source_w=source_w,
+            boxes=boxes,
+            logits=logits,
         )
         return detections, phrases
 
     def predict_with_classes(
-        self, image: np.ndarray, classes: List[str], box_threshold: float, text_threshold: float
+        self,
+        image: np.ndarray,
+        classes: List[str],
+        box_threshold: float,
+        text_threshold: float,
     ) -> sv.Detections:
         """
         import cv2
@@ -211,7 +218,10 @@ class Model:
         )
         source_h, source_w, _ = image.shape
         detections = Model.post_process_result(
-            source_h=source_h, source_w=source_w, boxes=boxes, logits=logits
+            source_h=source_h,
+            source_w=source_w,
+            boxes=boxes,
+            logits=logits,
         )
         class_id = Model.phrases2classes(phrases=phrases, classes=classes)
         detections.class_id = class_id
@@ -228,13 +238,20 @@ class Model:
                 T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         )
-        image_pillow = Image.fromarray(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB))
+        image_pillow = Image.fromarray(
+            cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        )
         image_transformed, _ = transform(image_pillow, None)
-        return torch.as_tensor(image_transformed, dtype=torch.float32)
+        return torch.as_tensor(
+            image_transformed, dtype=torch.float32
+        )
 
     @staticmethod
     def post_process_result(
-        source_h: int, source_w: int, boxes: torch.Tensor, logits: torch.Tensor
+        source_h: int,
+        source_w: int,
+        boxes: torch.Tensor,
+        logits: torch.Tensor,
     ) -> sv.Detections:
         import supervision as sv
 
