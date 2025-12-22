@@ -134,6 +134,81 @@ def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
     return None
 
 
+def _normalize_image_url(img_ref: str) -> str:
+    """Normalize an image reference URL for Label Studio compatibility.
+
+    Handles special Label Studio local file URL formats by converting them
+    to absolute paths when needed. Otherwise returns the URL unchanged.
+
+    Args:
+        img_ref: Image reference string (URL, path, or Label Studio special format)
+
+    Returns:
+        Normalized image URL or path
+    """
+    if not isinstance(img_ref, str):
+        return img_ref
+
+    s = img_ref.strip()
+
+    # Handle Label Studio local file server URLs
+    if "/data/local-files/?d=" in s:
+        # Extract the file path from the URL parameter
+        try:
+            import urllib.parse
+
+            parsed = urllib.parse.urlparse(s)
+            query_params = urllib.parse.parse_qs(parsed.query)
+            if "d" in query_params:
+                file_path_param = query_params["d"][0]
+                # Handle both /data/datasets/... and datasets/... formats
+                if file_path_param.startswith("/data/"):
+                    return file_path_param
+                else:
+                    return os.path.join("/data", file_path_param)
+        except Exception:
+            pass
+
+    return s
+
+
+def _extract_prompt(task: Dict[str, Any]) -> str:
+    """Extract prompt/text from a Label Studio task.
+
+    Looks for common fields at root and under task["data"] for text
+    describing the detection classes or caption.
+
+    Falls back to a default prompt if no text is found.
+
+    Args:
+        task: Label Studio-like task JSON dict
+
+    Returns:
+        Prompt string for inference (default: "object")
+    """
+    # Common prompt/text field names to check
+    prompt_keys = ("prompt", "text", "label", "query", "search", "description", "caption")
+
+    # Check at root level
+    for key in prompt_keys:
+        if key in task:
+            val = task[key]
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+
+    # Check under task["data"]
+    data = task.get("data")
+    if isinstance(data, dict):
+        for key in prompt_keys:
+            if key in data:
+                val = data[key]
+                if isinstance(val, str) and val.strip():
+                    return val.strip()
+
+    # Default fallback
+    return "object"
+
+
 def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
     req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urlopen(req, timeout=timeout) as resp:

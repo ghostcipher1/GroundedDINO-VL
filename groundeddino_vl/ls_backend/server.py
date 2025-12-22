@@ -17,7 +17,8 @@ from __future__ import annotations
 import argparse
 import base64
 import os
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, List, Union
+
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,6 +26,7 @@ from fastapi.responses import FileResponse
 
 from . import inference_engine, model_loader
 from .config import DEFAULT_SETTINGS
+from .utils import _extract_prompt, _maybe_extract_image_ref, _normalize_image_url
 
 
 async def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
