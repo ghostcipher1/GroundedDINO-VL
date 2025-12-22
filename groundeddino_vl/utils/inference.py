@@ -33,9 +33,7 @@ def load_model(model_config_path: str, model_checkpoint_path: str, device: str =
     args.device = device
     model = build_model(args)
     checkpoint = torch.load(model_checkpoint_path, map_location="cpu")
-    model.load_state_dict(
-        clean_state_dict(checkpoint["model"]), strict=False, assign=True
-    )
+    model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False, assign=True)
     model.eval()
     return model
 
@@ -117,9 +115,7 @@ def annotate(
         )
     except (TypeError, ValueError):
         # Fallback: just draw boxes without labels
-        annotated_frame = box_annotator.annotate(
-            scene=annotated_frame, detections=detections
-        )
+        annotated_frame = box_annotator.annotate(scene=annotated_frame, detections=detections)
 
     return annotated_frame
 
@@ -238,13 +234,9 @@ class Model:
                 T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         )
-        image_pillow = Image.fromarray(
-            cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-        )
+        image_pillow = Image.fromarray(cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB))
         image_transformed, _ = transform(image_pillow, None)
-        return torch.as_tensor(
-            image_transformed, dtype=torch.float32
-        )
+        return torch.as_tensor(image_transformed, dtype=torch.float32)
 
     @staticmethod
     def post_process_result(

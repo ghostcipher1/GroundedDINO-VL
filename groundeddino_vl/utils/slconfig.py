@@ -30,9 +30,7 @@ class ConfigDict(Dict):
         try:
             value = super(ConfigDict, self).__getattr__(name)
         except KeyError:
-            ex = AttributeError(
-                f"'{self.__class__.__name__}' object has no attribute '{name}'"
-            )
+            ex = AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
         except Exception as e:
             ex = e
         else:

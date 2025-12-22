@@ -97,8 +97,7 @@ async def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
         resolved_path = os.path.abspath(s)
         allowed_dirs = ["/data/datasets", "/data/groundeddino-vl"]
         if not any(
-            resolved_path.startswith(os.path.abspath(allowed_dir))
-            for allowed_dir in allowed_dirs
+            resolved_path.startswith(os.path.abspath(allowed_dir)) for allowed_dir in allowed_dirs
         ):
             raise ValueError(f"Access denied: {resolved_path}")
 
@@ -201,9 +200,7 @@ def create_app() -> Any:  # noqa: C901
 
         # If not found, try relative to project root
         if not os.path.isfile(file_path):
-            base_dir = os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            )
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             file_path = os.path.join(base_dir, d)
 
         # Resolve to absolute path
@@ -212,8 +209,7 @@ def create_app() -> Any:  # noqa: C901
         # Security check: ensure the resolved path is within allowed directories
         allowed_dirs = ["/data/datasets", "/data/groundeddino-vl"]
         if not any(
-            resolved_path.startswith(os.path.abspath(allowed_dir))
-            for allowed_dir in allowed_dirs
+            resolved_path.startswith(os.path.abspath(allowed_dir)) for allowed_dir in allowed_dirs
         ):
             raise HTTPException(status_code=403, detail="Access denied")
 
