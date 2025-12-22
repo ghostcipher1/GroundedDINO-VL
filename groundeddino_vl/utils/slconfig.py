@@ -30,7 +30,9 @@ class ConfigDict(Dict):
         try:
             value = super(ConfigDict, self).__getattr__(name)
         except KeyError:
-            ex = AttributeError(f"'{self.__class__.__name__}' object has no " f"attribute '{name}'")
+            ex = AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+            )
         except Exception as e:
             ex = e
         else:
@@ -70,7 +72,7 @@ class SLConfig(object):
         try:
             ast.parse(content)
         except SyntaxError:
-            raise SyntaxError("There are syntax errors in config " f"file {filename}")
+            raise SyntaxError(f"There are syntax errors in config file {filename}")
 
     @staticmethod
     def _file2dict(filename):
@@ -78,7 +80,9 @@ class SLConfig(object):
         check_file_exist(filename)
         if filename.lower().endswith(".py"):
             with tempfile.TemporaryDirectory() as temp_config_dir:
-                temp_config_file = tempfile.NamedTemporaryFile(dir=temp_config_dir, suffix=".py", delete=False)
+                temp_config_file = tempfile.NamedTemporaryFile(
+                    dir=temp_config_dir, suffix=".py", delete=False
+                )
                 temp_config_name = osp.basename(temp_config_file.name)
                 temp_config_file.close()  # Close before copyfile on Windows
                 shutil.copyfile(filename, osp.join(temp_config_dir, temp_config_name))

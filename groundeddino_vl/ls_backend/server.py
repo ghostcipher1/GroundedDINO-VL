@@ -26,7 +26,11 @@ from fastapi.responses import FileResponse
 
 from . import inference_engine, model_loader
 from .config import DEFAULT_SETTINGS
-from .utils import _extract_prompt, _maybe_extract_image_ref, _normalize_image_url
+from .utils import (
+    _extract_prompt,
+    _maybe_extract_image_ref,
+    _normalize_image_url,
+)
 
 
 async def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
