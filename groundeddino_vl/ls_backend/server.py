@@ -17,142 +17,30 @@ from __future__ import annotations
 import argparse
 import base64
 import os
-from typing import Any, Dict, List, Union, cast
-from urllib.request import Request, urlopen
+from typing import Any, Dict, List, Union
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from . import inference_engine, model_loader
 from .config import DEFAULT_SETTINGS
+from .utils import (
+    _extract_prompt,
+    _maybe_extract_image_ref,
+    _normalize_image_url,
+)
 
 
-def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
-    req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urlopen(req, timeout=timeout) as resp:
-        return bytes(resp.read())
+async def _read_bytes_from_url(url: str, timeout: int = 20) -> bytes:
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        return resp.content
 
 
-def _maybe_extract_image_ref(task: Dict[str, Any]) -> Union[str, bytes, None]:
-    """Extract an image reference from a Label Studio-like task.
-
-    Returns one of:
-      - bytes (if already provided)
-      - str URL or data URI
-      - None if not found
-    """
-    # Common fields: direct at root
-    for key in ("image_bytes", "image", "image_url", "imageUrl", "img", "url"):
-        if key in task:
-            val = task[key]
-            if isinstance(val, (str, bytes)):
-                return val
-
-    # Under "data" (Label Studio style)
-    data = task.get("data")
-    if isinstance(data, dict):
-        for key in ("image", "image_url", "imageUrl", "img", "url", "image_bytes"):
-            if key in data:
-                val = data[key]
-                if isinstance(val, (str, bytes)):
-                    return val
-
-    return None
-
-
-# Default wildlife detection class list (26 classes)
-# TODO: make configurable via env var or config file
-DEFAULT_WILDLIFE_CLASSES = [
-    "bear",
-    "bobcat",
-    "cougar",
-    "coyote",
-    "fox",
-    "wolf",
-    "raccoon",
-    "skunk",
-    "opossum",
-    "snake",
-    "horse",
-    "cow",
-    "sheep",
-    "goat",
-    "peafowl",
-    "duck",
-    "rabbit",
-    "chicken",
-    "pig",
-    "deer",
-    "automobile",
-    "pickup",
-    "tractor",
-    "person",
-    "field",
-]
-
-
-def _extract_prompt(task: Dict[str, Any]) -> Union[str, List[str]]:
-    """Extract labeling instructions/caption/classes from task.
-
-    Heuristics looking at several common fields. Falls back to DEFAULT_WILDLIFE_CLASSES.
-    """
-    # Prefer explicit prompt at root
-    for key in ("prompt", "caption", "instruction", "instructions"):
-        if key in task:
-            val = task[key]
-            if val and isinstance(val, (str, list)):
-                return cast(Union[str, List[str]], val)
-
-    data = task.get("data")
-    if isinstance(data, dict):
-        for key in ("prompt", "caption", "text", "instruction", "classes", "category"):
-            if key in data:
-                val = data[key]
-                if val and isinstance(val, (str, list)):
-                    return cast(Union[str, List[str]], val)
-
-    # Label list
-    for key in ("labels", "classes"):
-        if key in task:
-            val = task[key]
-            if val and isinstance(val, (str, list)):
-                return cast(Union[str, List[str]], val)
-
-    # Use wildlife class list instead of generic "a photo"
-    return DEFAULT_WILDLIFE_CLASSES
-
-
-def _normalize_image_url(url: str) -> str:
-    """Normalize image URL to Label Studio format without hostname/port.
-
-    Converts URLs like:
-      http://localhost:9090/data/local-files/?d=datasets/bear/bear_0006.jpg
-    To:
-      /data/local-files/?d=/data/datasets/bear/bear_0006.jpg
-    """
-    if not isinstance(url, str):
-        return url
-
-    # If it's a local file server URL with hostname/port, strip those
-    if "/data/local-files/" in url:
-        import urllib.parse
-
-        parsed = urllib.parse.urlparse(url)
-        query_params = urllib.parse.parse_qs(parsed.query)
-
-        if "d" in query_params:
-            file_path = query_params["d"][0]
-            # Ensure path starts with /data/
-            if not file_path.startswith("/data/"):
-                file_path = f"/data/{file_path}"
-            # Return normalized URL without hostname/port
-            return f"/data/local-files/?d={file_path}"
-
-    return url
-
-
-def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
+async def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
     if isinstance(ref, (bytes, bytearray)):
         return bytes(ref)
     if not isinstance(ref, str):
@@ -186,16 +74,33 @@ def _to_image_bytes(ref: Union[str, bytes]) -> bytes:
             else:
                 file_path = os.path.join("/data", file_path_param)
 
-            if os.path.isfile(file_path):
-                with open(file_path, "rb") as f:
+            # Security check: ensure the resolved path is within allowed directories
+            resolved_path = os.path.abspath(file_path)
+            allowed_dirs = ["/data/datasets", "/data/groundeddino-vl"]
+            if not any(
+                resolved_path.startswith(os.path.abspath(allowed_dir))
+                for allowed_dir in allowed_dirs
+            ):
+                raise ValueError(f"Access denied: {resolved_path}")
+
+            if os.path.isfile(resolved_path):
+                with open(resolved_path, "rb") as f:
                     return f.read()
 
     # Otherwise treat as URL
     if s.startswith("http://") or s.startswith("https://"):
-        return _read_bytes_from_url(s)
+        return await _read_bytes_from_url(s)
 
     # Treat as filesystem path as a last resort
     if os.path.isfile(s):
+        # Security check: ensure the resolved path is within allowed directories
+        resolved_path = os.path.abspath(s)
+        allowed_dirs = ["/data/datasets", "/data/groundeddino-vl"]
+        if not any(
+            resolved_path.startswith(os.path.abspath(allowed_dir)) for allowed_dir in allowed_dirs
+        ):
+            raise ValueError(f"Access denied: {resolved_path}")
+
         with open(s, "rb") as f:
             return f.read()
 
@@ -315,7 +220,7 @@ def create_app() -> Any:  # noqa: C901
         return FileResponse(resolved_path)
 
     @app.post("/predict")
-    def predict(task: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Dict[str, Any]:
+    async def predict(task: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Dict[str, Any]:
         tasks: List[Dict[str, Any]]
         is_single_task = False
 
@@ -371,7 +276,7 @@ def create_app() -> Any:  # noqa: C901
                     t["data"]["image"] = normalized_url
 
             try:
-                image_bytes = _to_image_bytes(img_ref)
+                image_bytes = await _to_image_bytes(img_ref)
             except Exception as e:
                 print(f"[ERROR] Failed to obtain image bytes from {img_ref}: {e}")
                 import traceback

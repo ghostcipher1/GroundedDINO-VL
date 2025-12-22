@@ -56,6 +56,7 @@ dependencies = [
     "uvicorn>=0.21.0",
     "SQLAlchemy>=2.0,<3.0",
     "tqdm>=4.66.0",
+    "httpx>=0.24.0",
 ]
 
 [project.optional-dependencies]

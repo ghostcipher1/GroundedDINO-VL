@@ -97,16 +97,26 @@ def annotate(
     h, w, _ = image_source.shape
     boxes = boxes * torch.Tensor([w, h, w, h])
     xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
-    detections = sv.Detections(xyxy=xyxy)
+
+    # Create class_id array for supervision compatibility
+    class_ids = np.arange(len(xyxy))
+    detections = sv.Detections(xyxy=xyxy, class_id=class_ids)
 
     labels = [f"{phrase} {logit:.2f}" for phrase, logit in zip(phrases, logits)]  # noqa: E231
 
-    # supervision 0.4.0 API doesn't have color_lookup parameter
+    # Try different annotation approaches for supervision compatibility
     box_annotator = sv.BoxAnnotator()
     annotated_frame = cv2.cvtColor(image_source, cv2.COLOR_RGB2BGR)
-    annotated_frame = box_annotator.annotate(
-        scene=annotated_frame, detections=detections, labels=labels
-    )
+
+    try:
+        # Try with labels parameter (newer supervision versions)
+        annotated_frame = box_annotator.annotate(
+            scene=annotated_frame, detections=detections, labels=labels
+        )
+    except (TypeError, ValueError):
+        # Fallback: just draw boxes without labels
+        annotated_frame = box_annotator.annotate(scene=annotated_frame, detections=detections)
+
     return annotated_frame
 
 
@@ -160,12 +170,19 @@ class Model:
         )
         source_h, source_w, _ = image.shape
         detections = Model.post_process_result(
-            source_h=source_h, source_w=source_w, boxes=boxes, logits=logits
+            source_h=source_h,
+            source_w=source_w,
+            boxes=boxes,
+            logits=logits,
         )
         return detections, phrases
 
     def predict_with_classes(
-        self, image: np.ndarray, classes: List[str], box_threshold: float, text_threshold: float
+        self,
+        image: np.ndarray,
+        classes: List[str],
+        box_threshold: float,
+        text_threshold: float,
     ) -> sv.Detections:
         """
         import cv2
@@ -197,7 +214,10 @@ class Model:
         )
         source_h, source_w, _ = image.shape
         detections = Model.post_process_result(
-            source_h=source_h, source_w=source_w, boxes=boxes, logits=logits
+            source_h=source_h,
+            source_w=source_w,
+            boxes=boxes,
+            logits=logits,
         )
         class_id = Model.phrases2classes(phrases=phrases, classes=classes)
         detections.class_id = class_id
@@ -220,7 +240,10 @@ class Model:
 
     @staticmethod
     def post_process_result(
-        source_h: int, source_w: int, boxes: torch.Tensor, logits: torch.Tensor
+        source_h: int,
+        source_w: int,
+        boxes: torch.Tensor,
+        logits: torch.Tensor,
     ) -> sv.Detections:
         import supervision as sv
 

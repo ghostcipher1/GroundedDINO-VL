@@ -13,7 +13,6 @@ from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAtte
 class BertModelWarper(nn.Module):
     def __init__(self, bert_model):
         super().__init__()
-        # self.bert = bert_modelc
 
         self.config = bert_model.config
         self.embeddings = bert_model.embeddings
@@ -116,8 +115,6 @@ class BertModelWarper(nn.Module):
             encoder_extended_attention_mask = self.invert_attention_mask(encoder_attention_mask)
         else:
             encoder_extended_attention_mask = None
-        # if os.environ.get('IPDB_SHILONG_DEBUG', None) == 'INFO':
-        #     import ipdb; ipdb.set_trace()
 
         # Prepare head mask if needed
         # 1.0 in head_mask indicate we keep the head
