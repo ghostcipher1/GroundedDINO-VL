@@ -1,6 +1,6 @@
 # GroundedDINO-VL
 
-**Modern Vision-Language Foundation Models for PyTorch 2.7 + CUDA 12.8**
+**Modern Vision-Language Foundation Models for PyTorch 2.7 + CUDA 12.9**
 
 [![CI](https://github.com/ghostcipher1/GroundedDINO-VL/actions/workflows/ci.yml/badge.svg)](https://github.com/ghostcipher1/GroundedDINO-VL/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
