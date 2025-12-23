@@ -3,7 +3,8 @@
 **Modern Vision-Language Foundation Models for PyTorch 2.9 + CUDA 13.0**
 
 [![CI](https://github.com/ghostcipher1/GroundedDINO-VL/actions/workflows/ci.yml/badge.svg)](https://github.com/ghostcipher1/GroundedDINO-VL/actions/workflows/ci.yml)
-![CUDA optional](https://img.shields.io/badge/CUDA-optional-76B900?logo=nvidia&logoColor=white)
+![CUDA-capable (Ampere / Ada / Blackwell)
+](https://img.shields.io/badge/CUDA-capable-76B900?logo=nvidia&logoColor=white)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
