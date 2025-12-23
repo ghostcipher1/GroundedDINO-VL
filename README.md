@@ -1,8 +1,10 @@
 # GroundedDINO-VL
 
-**Modern Vision-Language Foundation Models for PyTorch 2.7 + CUDA 12.8**
+**Modern Vision-Language Foundation Models for PyTorch 2.9 + CUDA 13.0**
 
 [![CI](https://github.com/ghostcipher1/GroundedDINO-VL/actions/workflows/ci.yml/badge.svg)](https://github.com/ghostcipher1/GroundedDINO-VL/actions/workflows/ci.yml)
+![CUDA optional](https://img.shields.io/badge/CUDA-optional-76B900?logo=nvidia&logoColor=white)
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 [![PyPI](https://img.shields.io/badge/PyPI-groundeddino_vl-blue.svg)](https://pypi.org/project/groundeddino_vl/)
@@ -12,14 +14,14 @@
 
 ## Overview
 
-**GroundedDINO-VL** is a modern, independent vision-language framework derived from [GroundingDINO](https://github.com/IDEA-Research/GroundingDINO), fully refactored and maintained for current GPU infrastructure with PyTorch 2.7 and CUDA 12.8 support.
+**GroundedDINO-VL** is a modern, independent vision-language framework derived from [GroundingDINO](https://github.com/IDEA-Research/GroundingDINO), fully refactored and maintained for current GPU infrastructure with PyTorch 2.9 and CUDA 13.0 support.
 
 This project is now **fully independent** from the original GroundingDINO implementation, with a clean, modern codebase while maintaining full compatibility with GroundingDINO model weights and providing backward compatibility for existing code.
 
 ### Key Features
 
 - **Fully Independent**: Clean break from legacy code - single source of truth in `groundeddino_vl/`
-- **Modern Stack**: PyTorch 2.7 + CUDA 12.8 support
+- **Modern Stack**: PyTorch 2.9 + CUDA 13.0 support
 - **Zero-Shot Detection**: Detect objects using natural language descriptions
 - **High Performance**: Compatible with GroundingDINO's COCO zero-shot 52.5 AP weights
 - **Backward Compatible**: Legacy `groundingdino` namespace supported via compatibility shim
@@ -173,12 +175,12 @@ This project is based on the groundbreaking work:
 
 ## System Requirements
 
-| Component | Requirement |
-|-----------|------------|
-| **Python** | 3.9, 3.10, 3.11, or 3.12 |
-| **PyTorch** | 2.7.0+ |
-| **CUDA** (optional) | 12.6 or 12.8 |
-| **C++ Compiler** | GCC 7+, Clang 5+, or MSVC 2019+ |
+| Component | Requirement                         |
+|-----------|-------------------------------------|
+| **Python** | 3.9 - 3.12                          |
+| **PyTorch** | 2.7.0 - 2.9.0                       |
+| **CUDA** (optional) | 12.6 - 13.0                         |
+| **C++ Compiler** | GCC 7+, Clang 5+, or MSVC 2019+     |
 | **GPU** (optional) | NVIDIA with Compute Capability 6.0+ |
 
 ---

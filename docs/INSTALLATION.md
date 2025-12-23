@@ -44,14 +44,15 @@ GroundedDINO-VL includes C++17 CUDA extensions that require a compatible compile
 
 For CUDA acceleration:
 
-| Component | Requirement |
-|-----------|-------------|
+| Component | Requirement                             |
+|-----------|-----------------------------------------|
 | **GPU** | NVIDIA GPU with Compute Capability 6.0+ |
-| **CUDA Toolkit** | 12.6 or 12.8 |
-| **PyTorch** | 2.7.0+ with CUDA 12.6/12.8 support |
+| **CUDA Toolkit** | 12.6 or 12.9                            |
+| **PyTorch** | 2.7.0+ with CUDA 12.6/12.9 support      |
 | **NVIDIA Driver** | 525.60.13+ (Linux) or 527.41+ (Windows) |
 
 **Supported NVIDIA GPUs:**
+- RTX 50 Series (Blackwell): RTX 5060, 5060 Ti, 5070, 5070 Ti, 5080, 5090
 - RTX 40 Series (Ada Lovelace): RTX 4090, 4080, 4070, etc.
 - RTX 30 Series (Ampere): RTX 3090, 3080, 3070, etc.
 - RTX 20 Series (Turing): RTX 2080 Ti, 2070, etc.
